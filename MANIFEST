@@ -1,0 +1,11 @@
+Build.PL
+Changes
+lib/DFA/StateMachine.pm
+Makefile.PL
+MANIFEST			This list of files
+README
+t/base.t
+t/pingpong.t
+t/pod-coverage.t
+t/pod.t
+META.yml

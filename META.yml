@@ -1,0 +1,14 @@
+--- #YAML:1.0
+name: DFA-StateMachine
+version: 0.01
+author:
+  - David Wheeler <david@kineticode.com>
+abstract: A simple Perl state machine
+license: perl
+build_requires:
+  Test::Simple: 0.17
+provides:
+  DFA::StateMachine:
+    file: lib/DFA/StateMachine.pm
+    version: 0.01
+generated_by: Module::Build version 0.26
