@@ -4,10 +4,10 @@
 
 use strict;
 #use Test::More 'no_plan';
-use Test::More tests => 289;
+use Test::More tests => 293;
 
 my $CLASS;
-BEGIN { 
+BEGIN {
     $CLASS = 'FSA::Rules';
     use_ok($CLASS) or die;
 }
@@ -562,7 +562,7 @@ like $err,
   "... And the error message should be appropriate (and verbose)";
 
 can_ok $fsa, 'at';
-$fsa = FSA::Rules->new(
+$fsa = $CLASS->new(
    ping => {
        do => sub { shift->machine->{count}++ },
        rules => [
@@ -590,3 +590,17 @@ is $fsa->{count}, 20,
   '... and it should terminate when I want it to.';
 is $fsa->{save_this}, 1,
   '... and execute the "do" action.';
+
+# Make sure that subclasses work.
+{
+    package FSA::Stately;
+    @FSA::Stately::ISA = qw(FSA::State);
+
+}
+
+ok $fsa = $CLASS->new( { state_class => 'FSA::Stately'}, foo => {} ),
+  "Construct with state_class";
+
+ok $foo = $fsa->states('foo'), 'Get "foo" state';
+isa_ok $foo, 'FSA::Stately';
+isa_ok $foo, 'FSA::State';

@@ -113,6 +113,11 @@ A value to which to set the C<done> attribute.
 
 A value to which to set the C<strict> attribute.
 
+=item state_class
+
+The name of the class to use for state objects. Defaults to "FSA::State". This
+will be useful for subclasses of FSA::State.
+
 =back
 
 All other parameters define the state table, where each key is the name of a
@@ -231,6 +236,7 @@ sub new {
         graph  => clone(\@_),
     };
 
+    $params->{state_class} ||= 'FSA::State';
     while (@_) {
         my $state = shift;
         my $def = shift;
@@ -247,7 +253,7 @@ sub new {
         }
 
         # Create the state object and cache the state data.
-        my $obj = bless {}, 'FSA::State';
+        my $obj = $params->{state_class}->new;
         $def->{name} = $state;
         $def->{machine} = $self;
         $fsa->{table}{$state} = $obj;
@@ -887,6 +893,22 @@ machine object (in its hash implementation or via the C<notes()> method), or
 retrieve other states from the state machine using its C<states()> method
 and then access its hash data directly.
 
+=head2 Constructor
+
+=head3 new
+
+  my $state = FSA::State->new;
+
+Constructs and returns a new FSA::State object. Not intended to be called
+directly, but by FSA::Rules.
+
+=cut
+
+sub new {
+    my $class = shift;
+    return bless {@_}, $class
+}
+
 =head2 Instance Methods
 
 =head3 name
@@ -1101,10 +1123,6 @@ __END__
 =head1 To Do
 
 =over
-
-=item Add state_class attribute to new() so people can subclass.
-
-=item Add new() method to FSA::Class (to ease subclassing).
 
 =item Factor FSA::Class into a separate file.
 
