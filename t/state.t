@@ -131,7 +131,6 @@ is $fsa->last_message, undef,
   '... and last_message should return undef if the last state had no message set';
 is $fsa->last_message('bar'), 'bar has been called 2 times',
   '... and last_message should return the message for a specified state';
-  '... and last_message should return undef if the last state had no message set';
 is scalar $bar->message, 'bar has been called 2 times',
   '... and the last result on bar should be returned in a scalar context';
 is_deeply [$bar->message], [

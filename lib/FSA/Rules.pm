@@ -519,7 +519,7 @@ sub reset {
     $machines{$self}->{current} = undef;
     $machines{$self}->{notes} = {};
     @{$machines{$self}->{stack}} = ();
-    @{$states{$_}->{index}} = () for $self->state;
+    @{$states{$_}->{index}} = () for $self->states;
     return $self;
 }
 

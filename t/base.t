@@ -466,6 +466,6 @@ is $fsa->notes('my'), 'machine',
   "... And passing in the key should return the new value";
 is_deeply $fsa->notes, { key => 'val', my => 'machine' },
   "... And passing in no arguments should return the complete notes hashref";
-$fsa->reset, $fsa, "... Calling reset() should return the machine";
+is_deeply $fsa->reset, $fsa, "... Calling reset() should return the machine";
 is $fsa->notes('key'), undef, '... And now passing in a key should return undef';
 is_deeply $fsa->notes, {}, "... and with no arguments, we should get an empty hash";
