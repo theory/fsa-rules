@@ -715,14 +715,17 @@ sub run {
   $fsa->reset;
 
 The C<reset()> method clears the stack and notes and sets the current state to
-C<undef>. Use this method when you want to reuse your state machine. Returns
-the DFA::Rules object.
+C<undef>. Also clears any temporary data stored directly in the machine
+hashref. Use this method when you want to reuse your state machine. Returns the
+DFA::Rules object.
 
   my $fsa = FSA::Rules->new(@state_machine);
   $fsa->done(sub {$done});
   $fsa->run;
   # do a bunch of stuff
+  $fsa->{miscellaneous} = 42;
   $fsa->reset->run;
+  # $fsa->{miscellaneous} does not exist
 
 =cut
 
@@ -733,6 +736,8 @@ sub reset {
     $fsa->{notes} = {};
     @{$fsa->{stack}} = ();
     @{$states{$_}->{index}} = () for $self->states;
+    my @keys = keys %$self; # must be a two-step process
+    delete $self->{$_} foreach @keys;
     return $self;
 }
 

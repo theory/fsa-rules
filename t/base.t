@@ -4,7 +4,7 @@
 
 use strict;
 #use Test::More 'no_plan';
-use Test::More tests => 303;
+use Test::More tests => 304;
 
 my $CLASS;
 BEGIN {
@@ -537,7 +537,9 @@ is $fsa->notes('my'), 'machine',
   "... And passing in the key should return the new value";
 is_deeply $fsa->notes, { test => 'foo', key => 'val', my => 'machine' },
   "... And passing in no arguments should return the complete notes hashref";
+$fsa->{should_not_exist_after_reset} = 1;
 is_deeply $fsa->reset, $fsa, "... Calling reset() should return the machine";
+is_deeply $fsa, {}, "... it should be an empty hashref";
 is $fsa->notes('key'), undef, '... And now passing in a key should return undef';
 is_deeply $fsa->notes, {}, "... and with no arguments, we should get an empty hash";
 
