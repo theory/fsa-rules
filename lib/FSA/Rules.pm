@@ -561,23 +561,39 @@ sub notes {
 
 =head3 last_message
 
-Returns the last message of the current state. A shortcug for
-C<< $fsa->state->message >>.
+  my $message = $fsa->last_message;
+  $message = $fsa->last_message('state_name');
+
+Returns the last message of the current state. Pass in the name of a state to
+get the last message for that state.
 
 =cut
 
-sub last_message { shift->state->message }
+sub last_message {
+    my $self = shift;
+    return $self->state->message unless @_;
+    my ($state) = $self->states(@_);
+    return $state->message;
+}
 
 ##############################################################################
 
 =head3 last_result
 
-Returns the last result of the current state. A shortcug for
-C<< $fsa->state->result >>.
+  my $result = $fsa->last_result;
+  $result = $fsa->last_result('state_name');
+
+Returns the last result of the current state. Pass in the name of a state to
+get the last result for that state.
 
 =cut
 
-sub last_result { shift->state->result }
+sub last_result {
+    my $self = shift;
+    return $self->state->result unless @_;
+    my ($state) = $self->states(@_);
+    return $state->result;
+}
 
 ##############################################################################
 

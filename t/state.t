@@ -118,6 +118,8 @@ $fsa->switch('bar');
 $fsa->switch('foo');
 
 is $fsa->last_result, 'b', '... and last_result() should return the last result';
+is $fsa->last_result('bar'), 2,
+  '... and last_result() shoul return the last result for a specified state';
 is scalar $foo->result, 'b', '... and result should return its last result';
 
 is scalar $bar->result, 2,
@@ -126,6 +128,9 @@ is_deeply [$bar->result], [1,2],
   '... or all results of the state if called in list context';
 
 is $fsa->last_message, undef,
+  '... and last_message should return undef if the last state had no message set';
+is $fsa->last_message('bar'), 'bar has been called 2 times',
+  '... and last_message should return the message for a specified state';
   '... and last_message should return undef if the last state had no message set';
 is scalar $bar->message, 'bar has been called 2 times',
   '... and the last result on bar should be returned in a scalar context';
