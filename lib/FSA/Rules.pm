@@ -3,7 +3,7 @@ package FSA::Rules;
 # $Id$
 
 use strict;
-$FSA::Rules::VERSION = '0.07';
+$FSA::Rules::VERSION = '0.06';
 
 =begin comment
 
@@ -267,8 +267,6 @@ sub state {
     my $self = shift;
     return $states{$self}->{current} unless @_;
 
-    push @{$states{$self}->{stack}} => $states{$self}->{current} 
-      if defined $states{$self}->{current};
     my $state = shift;
     my $def = $states{$self}->{table}{$state}
       or require Carp && Carp::croak(qq{No such state "$state"});
@@ -284,6 +282,9 @@ sub state {
         $_->($self) for @$exec;
     }
 
+    # Push the new state onto the stack.
+    push @{$states{$self}->{stack}} => $state;
+
     # Set the new state.
     $states{$self}->{current} = $state;
     $_->($self) for @{$def->{on_enter}};
@@ -297,9 +298,10 @@ sub state {
 
   my $stack = $fsa->stack;
 
-Returns an array ref of all states the machine has transformed into, beginning
-with the first state.  Until a state transition occurs, its name will not be
-pushed onto the stack.  This method is useful for debugging.
+Returns an array reference of all states the machine has been in beginning
+with the first state and ending with the current state. No state name will be
+added to the stack until the machine has been in that state. This method is
+useful for debugging.
 
 =cut
 
@@ -313,16 +315,15 @@ sub stack {
 
   $fsa->reset;
 
-The C<reset()> method will clear the stack and set the current state to undef.
-This method is used when needing to reuse a state machine.
+The C<reset()> method will clear the stack and set the current state to
+C<undef>. Use this method when you want to reuse your state machine. Returns
+the DFA::Rules object.
 
-Returns C<$self>.
-
- my $fsa = FSA::Rules->new(@state_machine);
- $fsa->done(sub {$done});
- $fsa->run;
- # do a bunch of stuff
- $fsa->reset->run;
+  my $fsa = FSA::Rules->new(@state_machine);
+  $fsa->done(sub {$done});
+  $fsa->run;
+  # do a bunch of stuff
+  $fsa->reset->run;
 
 =cut
 

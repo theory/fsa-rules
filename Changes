@@ -1,6 +1,6 @@
 Revision history for Perl extension FSA::Rules.
 
-0.06  2004-12-16T01:49:17
+0.06  
       - Added a C<stack()> method to return an arrayref of state 
         transformations.
       - Added C<reset()> which resets the state machine to a pristince state.

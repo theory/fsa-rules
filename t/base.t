@@ -394,7 +394,7 @@ is $fsa->try_switch('foo'), 'foo',
 is $fsa->state, 'foo', "... So the state should now be back to 'foo'";
 
 can_ok $CLASS, 'stack';
-is_deeply $fsa->stack, [qw/foo bar bar/],
+is_deeply $fsa->stack, [qw/foo bar bar foo/],
   "... and it should have a stack of the state transformations";
 
 can_ok $CLASS, 'reset';
@@ -415,5 +415,5 @@ is $fsa->state, 'bar', "... So the state should still be 'bar'";
 is $fsa->try_switch('foo'), 'foo',
   "... It should switch back to 'foo' when passed 'foo'";
 is $fsa->state, 'foo', "... So the state should now be back to 'foo'";
-is_deeply $fsa->stack, [qw/foo bar bar/],
+is_deeply $fsa->stack, [qw/foo bar bar foo/],
   "... and it should have a stack of the state transformations";
