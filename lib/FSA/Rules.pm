@@ -26,22 +26,22 @@ FSA::Rules - Build simple rules-based state machines in Perl
      ping => {
          on_enter => sub { print "Entering ping\n" },
          do       => [ sub { print "ping!\n" },
-                       sub { shift->notes(goto => 'pong'); },
+                       sub { shift->result('pong'); },
                        sub { shift->machine->{count}++ }
          ],
          on_exit  => sub { print "Exiting 'ping'\n" },
          rules    => [
-             pong => sub { shift->notes('goto') eq 'pong' },
+             pong => sub { shift->result eq 'pong' },
          ],
      },
 
      pong => {
          on_enter => [ sub { print "Entering pong\n" },
-                       sub { shift->notes(goto => 'ping') } ],
+                       sub { shift->result('ping') } ],
          do       => sub { print "pong!\n"; },
          on_exit  => sub { print "Exiting 'pong'\n" },
          rules    => [
-             ping => [ sub { shift->notes('goto') eq 'ping' },
+             ping => [ sub { shift->result eq 'ping' },
                        sub { print "pong to ping\n" },
              ]
          ],
@@ -519,7 +519,7 @@ Or this:
   my $fsa = FSA::Rules->new(
       foo => {
           do    => { ++shift->machine->{count} },
-          rules => [ do => 1 ],
+          rules => [ foo => 1 ],
       }
   );
   $fsa->done( sub { shift->{count} >= 5 });
