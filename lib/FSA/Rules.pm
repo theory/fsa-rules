@@ -297,48 +297,6 @@ sub state {
 
 ##############################################################################
 
-=head3 stack
-
-  my $stack = $fsa->stack;
-
-Returns an array reference of all states the machine has been in beginning
-with the first state and ending with the current state. No state name will be
-added to the stack until the machine has been in that state. This method is
-useful for debugging.
-
-=cut
-
-sub stack {
-    return $states{$_[0]}->{stack};
-}
-
-##############################################################################
-
-=head3 reset
-
-  $fsa->reset;
-
-The C<reset()> method will clear the stack and set the current state to
-C<undef>. Use this method when you want to reuse your state machine. Returns
-the DFA::Rules object.
-
-  my $fsa = FSA::Rules->new(@state_machine);
-  $fsa->done(sub {$done});
-  $fsa->run;
-  # do a bunch of stuff
-  $fsa->reset->run;
-
-=cut
-
-sub reset {
-    my $self = shift;
-    $states{$self}->{stack}   = [];
-    $states{$self}->{current} = undef;
-    return $self;
-}
-
-##############################################################################
-
 =head3 try_switch
 
   my $state = $fsa->try_switch;
@@ -473,6 +431,48 @@ sub run {
     my $self = shift;
     $self->start unless $states{$self}->{current};
     $self->switch until $self->done;
+    return $self;
+}
+
+##############################################################################
+
+=head3 stack
+
+  my $stack = $fsa->stack;
+
+Returns an array reference of all states the machine has been in beginning
+with the first state and ending with the current state. No state name will be
+added to the stack until the machine has been in that state. This method is
+useful for debugging.
+
+=cut
+
+sub stack {
+    return $states{$_[0]}->{stack};
+}
+
+##############################################################################
+
+=head3 reset
+
+  $fsa->reset;
+
+The C<reset()> method will clear the stack and set the current state to
+C<undef>. Use this method when you want to reuse your state machine. Returns
+the DFA::Rules object.
+
+  my $fsa = FSA::Rules->new(@state_machine);
+  $fsa->done(sub {$done});
+  $fsa->run;
+  # do a bunch of stuff
+  $fsa->reset->run;
+
+=cut
+
+sub reset {
+    my $self = shift;
+    $states{$self}->{stack}   = [];
+    $states{$self}->{current} = undef;
     return $self;
 }
 
