@@ -18,7 +18,7 @@ Synopsis
 
          pong => {
              do => sub { print "pong!\n" },
-             rules => [ ping => 1, ], # always goes back to pong
+             rules => [ ping => 1, ], # always goes back to ping
          },
          game_over => { do => sub { print "Game Over" } }
       );
@@ -160,14 +160,14 @@ Class Interface
             The message will also be used to label switch labels in the
             output of the "graph()" method.
 
-        actions
-            An array reference of code references to be executed during the
-            switch, after the "on_exit" actions have been executed in the
-            current state, but before the "on_enter" actions execute in the
-            new state. Two arguments will be passed to these code
-            references: the FSA::State object for the state for which they
-            were defined, and the FSA::State object for the new state (which
-            will not yet be the current state).
+        action
+            A code reference or an array reference of code references to be
+            executed during the switch, after the "on_exit" actions have
+            been executed in the current state, but before the "on_enter"
+            actions execute in the new state. Two arguments will be passed
+            to these code references: the FSA::State object for the state
+            for which they were defined, and the FSA::State object for the
+            new state (which will not yet be the current state).
 
         A couple of examples:
 
@@ -182,7 +182,7 @@ Class Interface
               yow => {
                   rule => \&goto_yow,
                   message => 'Yow!',
-                  actions => [ \&action_one, \&action_two],
+                  action  => [ \&action_one, \&action_two],
               }
           ]
 
@@ -216,8 +216,8 @@ Class Interface
 
           rules => [
               yow => {
-                  rule =>  \&check_yow,
-                  actions =? [ \&action_one, \&action_two ],
+                  rule   =>  \&check_yow,
+                  action => [ \&action_one, \&action_two ],
               }
           ]
 
@@ -271,6 +271,9 @@ Instance Interface
     FSA::State object object for that state. When called with more than one
     state name arguments, it returns a list or array reference of those
     states.
+
+    If called with any state names that did not exist in the original
+    definition of the state machine, this method will "croak()".
 
    try_switch
       my $state = $fsa->try_switch;
@@ -379,14 +382,18 @@ Instance Interface
       $fsa->reset;
 
     The "reset()" method clears the stack and notes and sets the current
-    state to "undef". Use this method when you want to reuse your state
-    machine. Returns the DFA::Rules object.
+    state to "undef". Also clears any temporary data stored directly in the
+    machine hash reference and the state hash references. Use this method
+    when you want to reuse your state machine. Returns the DFA::Rules
+    object.
 
       my $fsa = FSA::Rules->new(@state_machine);
       $fsa->done(sub {$done});
       $fsa->run;
       # do a bunch of stuff
+      $fsa->{miscellaneous} = 42;
       $fsa->reset->run;
+      # $fsa->{miscellaneous} does not exist
 
    notes
       $fsa->notes($key => $value);
@@ -482,14 +489,31 @@ Instance Interface
     An optional hash ref of parameters may be passed as the first argument
     to "graph()". The supported parameters are:
 
-    label_wrap
-        The label wrap length for graphs. Each edge on the graph has a
-        "label." If the rules for a given state were specified as hash
-        references in the call to "new()", the "message" key will used as
-        the label; otherwise the label is blank. When used as labels,
-        messages are wrapped in order to make labels fit better. The default
-        maximum line length is 25. However, you may set a different wrap
-        length using this parameter.
+    text_wrap
+        The text wrap length for graphs. There's a lot of text on the graph.
+        This property will set the wrap length for all text to the given
+        length using the "Text::Wrap" module.
+
+        Each edge on the graph has a "label." If the rules for a given state
+        were specified as hash references in the call to "new()", the
+        "message" key will used as the label; otherwise the label is blank.
+        When used as labels, messages are wrapped in order to make labels
+        fit better. The default maximum line length is 25. However, you may
+        set a different wrap length using this parameter.
+
+        Note: By default, text wrapping for graphs is disabled. You must
+        specifically state which text you want wrapped with either the
+        "wrap_nodes" or "wrap_labels" parameters.
+
+    wrap_nodes
+        This parameter, if set to true, will wrap the node text.
+
+        Due to an obscure bug that has been difficult to track down, this
+        sometimes causes graphs to not display properly. Use with caution.
+
+    wrap_labels
+        This parameter, if set to true, will wrap the label text. This
+        property is always safe to use.
 
     Note: If "GraphViz" is not available on your system, this method will
     warn and return.
@@ -620,8 +644,9 @@ To Do
 Bugs
     Please send bug reports to <bug-fsa-rules@rt.cpan.org>.
 
-Author
-    David Wheeler <david@kineticode.com>
+Authors
+    David Wheeler <david@kineticode.com> Curtis "Ovid" Poe
+    <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
 
 Copyright and License
     Copyright (c) 2004 Kineticode, Inc. All Rights Reserved.
