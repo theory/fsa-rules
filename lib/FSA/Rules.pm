@@ -1020,14 +1020,6 @@ sub _rules {
 1;
 __END__
 
-=head1 To Do
-
-=over
-
-=item Add strict attribute.
-
-=back
-
 =head1 Bugs
 
 Please send bug reports to <bug-fsa-statemachine@rt.cpan.org>.
