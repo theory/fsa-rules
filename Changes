@@ -1,5 +1,9 @@
 Revision history for Perl extension FSA::Rules.
 
+0.04
+      - Changed "done()" to evaluate a code reference if a code reference is
+        what is passed to it. Suggested by Curtis Poe.
+
 0.03  2004-12-15T23:45:39
       - Fixed POD for search.cpan.org.
 

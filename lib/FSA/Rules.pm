@@ -3,7 +3,7 @@ package FSA::Rules;
 # $Id$
 
 use strict;
-$FSA::Rules::VERSION = '0.03';
+$FSA::Rules::VERSION = '0.04';
 
 =begin comment
 
@@ -167,6 +167,7 @@ sub new {
     $states{$self} = {
         table => {},
         start => $_[0],
+        done  => sub { return },
     };
 
     while (@_) {
@@ -337,10 +338,37 @@ sub switch {
 
   my $done = $fsa->done;
   $fsa->done($done);
+  $fsa->done( sub {...} );
 
-Get or set a value to indicate whether the engine is done running. This can be
-useful for state actions to set to the appropriate value, and then the user of
-the state object can simply call done as appropriate. Something like this:
+Get or set a value to indicate whether the engine is done running. Or set it
+to a code reference to have that code refernce called each time C<done()> is
+called without arguments and have its its return value returned. A code
+reference should expect the FSA::Rules object passed in as its only argument.
+
+This method can be useful for checking to see if your state engine is done
+running, and calling C<switch()> when it isn't. States can set it to a true
+value when they consider processing done, or you can use a code reference that
+evaluates done-ness itself. Something like this:
+
+  my $fsa = FSA::Rules->new(
+      foo => {
+          do    => { $_[0]->done(1) if ++$_[0]->{count} >= 5 },
+          rules => [ do => 1 ],
+      }
+  );
+
+Or this:
+
+  my $fsa = FSA::Rules->new(
+      foo => {
+          do    => { ++shift->{count} },
+          rules => [ do => 1 ],
+      }
+  );
+  $fsa->done( sub { shift->{count} >= 5 });
+
+Then you can just run the state engine, checking C<done()> to find out when
+it's, uh, done.
 
   $fsa->start;
   $fsa->switch until $fsa->done;
@@ -351,9 +379,13 @@ Although you could just use the C<run()> method if you wanted to do that.
 
 sub done {
     my $self = shift;
-    return $states{$self}->{done} unless @_;
-    $states{$self}->{done} = shift;
-    return $self;
+    if (@_) {
+        my $done = shift;
+        $states{$self}->{done} = ref $done eq 'CODE' ? $done : sub { $done };
+        return $self;
+    }
+    my $code = $states{$self}->{done};
+    return $code->($self);
 }
 
 ##############################################################################

@@ -4,7 +4,7 @@
 
 use strict;
 #use Test::More 'no_plan';
-use Test::More tests => 164;
+use Test::More tests => 168;
 
 BEGIN { use_ok('FSA::Rules') }
 
@@ -342,8 +342,23 @@ is $fsa->run, $fsa, "... Run should still work.";
 is $fsa->{count}, 3,
   "... And it should have run through the proper number of again.";
 
+# Try done with a code refernce.
+ok $fsa = FSA::Rules->new(
+    0 => { rules => [ 1 => [ 1, sub { shift->{count}++ } ] ] },
+    1 => { rules => [ 0 => [ 1 ] ] },
+), "Construct with simple states to test a done code ref";
+
+
+is $fsa->done( sub { shift->{count} == 3 }), $fsa,
+  "Set done to a code reference";
+$fsa->{count} = 0;
+is $fsa->run, $fsa, "... Run should still work.";
+is $fsa->{count}, 3,
+  "... And it should have run through the proper number of again.";
+
 # Check for duplicate states.
 eval { FSA::Rules->new( foo => {}, foo => {}) };
 ok $err = $@, 'Attempt to specify the same state twice should throw an error';
 like $err, qr/The state "foo" already exists/,
   '... And that exception should have the proper message';
+
