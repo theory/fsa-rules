@@ -6,6 +6,7 @@ MANIFEST			This list of files
 META.yml
 README
 t/base.t
+t/graph.t
 t/pingpong.t
 t/pod-coverage.t
 t/pod.t
