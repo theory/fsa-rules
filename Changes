@@ -23,6 +23,9 @@ Revision history for Perl extension FSA::Rules.
       - The start() method will now throw an exception if the machine is
         already running. Call reset() before calling start on a running
         machine.
+      - Added optional parameter hash reference as first argument to new().
+        It can force the machine to be started before being returned, or
+        can set the "done" attribute.
 
 0.07  2004-12-16T22:23:43
       - Updated the synopsis to no longer document non-existant methods.

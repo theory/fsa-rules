@@ -95,12 +95,33 @@ state or the state machine itself.
       bar_state => { ... },
   );
 
-Constructs and returns a new FSA::Rules object. The parameters define the
-state table, where each key is the name of a state and the following hash
-reference defines the state, its actions and its switch rules. These state
-specifications will be converted to FSA::State objects available via the
-C<state()> method. The first state parameter is considered to be the start
-state; call the C<start()> method to automatically enter that state.
+  $fsa = FSA::Rules->new(
+      \%params,
+      foo_state => { ... },
+      bar_state => { ... },
+  );
+
+Constructs and returns a new FSA::Rules object. An optional first argument
+is a hash reference that may contain one or more of these keys:
+
+=over
+
+=item start
+
+Causes the C<start()> method to be called on the machine before returning it.
+
+=item done
+
+A value to which to set the C<done> attribute.
+
+=back
+
+All other parameters define the state table, where each key is the name of a
+state and the following hash reference defines the state, its actions and its
+switch rules. These state specifications will be converted to FSA::State
+objects available via the C<state()> method. The first state parameter is
+considered to be the start state; call the C<start()> method to automatically
+enter that state.
 
 The supported keys in the state definition hash references are:
 
@@ -197,6 +218,8 @@ sub new {
         notes => {},
     };
 
+    my $params = ref $_[0] ? shift : {};
+
     while (@_) {
         my $state = shift;
         my $def = shift;
@@ -249,6 +272,9 @@ sub new {
         }
     }
 
+    # Handle any parameters.
+    $self->start if $params->{start};
+    $self->done($params->{done}) if exists $params->{done};
     return $self;
 }
 
@@ -958,6 +984,8 @@ __END__
 =item strict
 
 =item error_handler
+
+=item start
 
 =back
 

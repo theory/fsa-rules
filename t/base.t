@@ -489,3 +489,18 @@ is_deeply $fsa->notes, { test => 'foo', key => 'val', my => 'machine' },
 is_deeply $fsa->reset, $fsa, "... Calling reset() should return the machine";
 is $fsa->notes('key'), undef, '... And now passing in a key should return undef';
 is_deeply $fsa->notes, {}, "... and with no arguments, we should get an empty hash";
+
+# Try parameters to new().
+ok $fsa = $CLASS->new(
+    {
+        done  => 'done',
+        start => 1,
+    },
+    foo => {},
+    bar => {},
+), "Construct with a optional parameters";
+
+is $fsa->state->name, 'foo',
+  "... And the engine should be started with the 'bar' state";
+is $fsa->done, 'done', '... And done should be set to "done"';
+
