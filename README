@@ -1,10 +1,10 @@
 Name
-    FSA::Rules - Build simple state machines in Perl
+    FSA::Machine - Build simple state machines in Perl
 
 Synopsis
-      use FSA::Rules;
+      use FSA::Machine;
 
-      my $fsa = FSA::Rules->new(
+      my $fsa = FSA::Machine->new(
          ping => {
              on_enter => sub { print "Entering ping\n" },
              do       => [ sub { print "ping!\n" },
@@ -45,26 +45,26 @@ Description
     in that it offers no back-tracking. But in truth, you can use it to
     build a state machine that adheres to either model.
 
-    FSA::Rules uses named states so that it's easy to tell what state you're
+    FSA::Machine uses named states so that it's easy to tell what state you're
     in and what state you want to go to. Each state may optionally define
     actions that are triggered upon entering the state, after entering the
     state, and upon exiting the state. They may also define rules for
     switching to other states, and these rules may specify the execution of
     switch-specific actions. All actions are defined in terms of anonymous
-    subroutines that should expect the FSA::Rules object itself to be passed
+    subroutines that should expect the FSA::Machine object itself to be passed
     as the sole argument.
 
-    FSA::Rules objects are implemented as empty hash references, so the
-    action subroutines can use the FSA::Rules object passed as the sole
+    FSA::Machine objects are implemented as empty hash references, so the
+    action subroutines can use the FSA::Machine object passed as the sole
     argument to stash data for other states to access, without the
     possibility of interfering with the state machine itself.
 
 Class Interface
   Constructor
    new
-      my $fsa = FSA::Rules->new(@state_table);
+      my $fsa = FSA::Machine->new(@state_table);
 
-    Constructs and returns a new FSA::Rules object. The parameters define
+    Constructs and returns a new FSA::Machine object. The parameters define
     the state table, where each key is the name of a state and the following
     hash reference defines the state, its actions and its switch rules. The
     first state parameter is considered to be the start state; call the
@@ -78,7 +78,7 @@ Class Interface
 
         Optional. A code reference or array reference of code references.
         These will be executed when entering the state, after any switch
-        actions defined by the "rules" of the previous state. The FSA::Rules
+        actions defined by the "rules" of the previous state. The FSA::Machine
         object will be passed to each code reference as the sole argument.
 
     do
@@ -87,7 +87,7 @@ Class Interface
 
         Optional. A code reference or array reference of code references.
         These are the actions to be taken while in the state, and will
-        execute after any "on_enter" actions. The FSA::Rules object will be
+        execute after any "on_enter" actions. The FSA::Machine object will be
         passed to each code reference as the sole argument.
 
     on_exit
@@ -96,7 +96,7 @@ Class Interface
 
         Optional. A code reference or array reference of code references.
         These will be executed when exiting the state, before any switch
-        actions (defined by "rules"). The FSA::Rules object will be passed
+        actions (defined by "rules"). The FSA::Machine object will be passed
         to each code reference as the sole argument.
 
     rules
@@ -120,7 +120,7 @@ Class Interface
         of code references. The code reference (or first code reference in
         the array) must return a true value to trigger the switch to the new
         state, and false not to switch to the new state. When executed, it
-        will be passed the FSA::Rules object, along with any other arguments
+        will be passed the FSA::Machine object, along with any other arguments
         passed to "try_switch()" or "switch()", the methods that execute the
         rule code references. These arguments may be inputs that are
         specifically tested to determine whether to switch states. To be
@@ -132,7 +132,7 @@ Class Interface
         Any other code references in the array will be executed during the
         switch, after the "on_exit" actions have been executed in the
         current state, but before the "on_enter" actions execute in the new
-        state. The FSA::Rules object will be passed in as the sole argument.
+        state. The FSA::Machine object will be passed in as the sole argument.
 
         A rule may also be simply specify scalar variable, in which case
         that value will be used to determine whether the rule evaluates to a
@@ -143,7 +143,7 @@ Class Interface
 
 Instance Interface
   Machine Interface
-    These methods generally apply to the FSA::Rules machine, and will be
+    These methods generally apply to the FSA::Machine machine, and will be
     called by users of the machine, rather than by the state actions. See
     State Interface for the interface for state actions.
 
@@ -160,7 +160,7 @@ Instance Interface
     Get or set the current state. Setting the state causes the "on_exit"
     actions of the current state to be executed, if there is a current
     state, and then executes the "on_enter" and "do" actions of the new
-    state. Returns the FSA::Rules object when setting the state.
+    state. Returns the FSA::Machine object when setting the state.
 
    try_switch
       my $state = $fsa->try_switch;
@@ -193,7 +193,7 @@ Instance Interface
     Get or set a value to indicate whether the engine is done running. Or
     set it to a code reference to have that code reference called each time
     "done()" is called without arguments and have *its* return value
-    returned. A code reference should expect the FSA::Rules object passed in
+    returned. A code reference should expect the FSA::Machine object passed in
     as its only argument.
 
     This method can be useful for checking to see if your state engine is
@@ -201,7 +201,7 @@ Instance Interface
     a true value when they consider processing complete, or you can use a
     code reference that evaluates "done-ness" itself. Something like this:
 
-      my $fsa = FSA::Rules->new(
+      my $fsa = FSA::Machine->new(
           foo => {
               do    => { $_[0]->done(1) if ++$_[0]->{count} >= 5 },
               rules => [ do => 1 ],
@@ -210,7 +210,7 @@ Instance Interface
 
     Or this:
 
-      my $fsa = FSA::Rules->new(
+      my $fsa = FSA::Machine->new(
           foo => {
               do    => { ++shift->{count} },
               rules => [ do => 1 ],
@@ -229,7 +229,7 @@ Instance Interface
    run
       $fsa->run;
 
-    This method starts the FSA::Rules engine (if it hasn't already been set
+    This method starts the FSA::Machine engine (if it hasn't already been set
     to a state) by calling "start()", and then calls the "switch()" method
     repeatedly until "done()" returns a true value. In other words, it's a
     convenient shortcut for:
@@ -242,16 +242,16 @@ Instance Interface
     value, then this method will never die or return, but run forever. So
     plan carefully!
 
-    Returns the FSA::Rules object.
+    Returns the FSA::Machine object.
 
    reset
       $fsa->reset;
 
     The "reset()" method will clear the stack and set the current state to
     "undef". Use this method when you want to reuse your state machine.
-    Returns the DFA::Rules object.
+    Returns the DFA::Machine object.
 
-      my $fsa = FSA::Rules->new(@state_machine);
+      my $fsa = FSA::Machine->new(@state_machine);
       $fsa->done(sub {$done});
       $fsa->run;
       # do a bunch of stuff

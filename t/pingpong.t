@@ -3,42 +3,44 @@
 # $Id$
 
 use strict;
-use Test::More tests => 14;
-#use Test::More 'no_plan';
+#use Test::More tests => 14;
+use Test::More 'no_plan';
 
-BEGIN { use_ok('FSA::Rules') }
+BEGIN { use_ok('FSA::Machine') }
 
 my @msgs;
 
-ok my $fsa = FSA::Rules->new(
+ok my $fsa = FSA::Machine->new(
     ping => {
         on_enter => sub { push @msgs, "Entering ping\n" },
         do       => [ sub { push @msgs, "ping!\n" },
-                      sub { shift->{goto} = 'pong'; },
-                      sub { shift->{count}++ }
+                      sub { shift->machine->{goto} = 'pong'; },
+                      sub { shift->machine->{count}++ }
                   ],
         on_exit  => sub { push @msgs, "Exiting ping\n" },
         rules     => [
-            pong => sub { shift->{goto} eq 'pong' },
+            pong => sub { shift->machine->{goto} eq 'pong' },
         ],
     },
 
     pong => {
         on_enter => [ sub { push @msgs, "Entering pong\n" },
-                      sub { shift->{goto} = 'ping' } ],
+                      sub { shift->machine->{goto} = 'ping' } ],
         do       => sub { push @msgs, "pong!\n"; },
         on_exit  => sub { push @msgs, "Exiting pong\n" },
         rules     => [
-            ping => [ sub { shift->{goto} eq 'ping' },
+            ping => [ sub { shift->machine->{goto} eq 'ping' },
                       sub { push @msgs, "pong to ping\n" },
-                      sub { $_[0]->done($_[0]->{count} == 5 ) },
+                      sub { $_[0]->machine->done($_[0]->machine->{count} == 5 ) },
                   ],
         ],
     },
 ), "Create the ping pong FSA machine";
 
-is $fsa->start, 'ping', "Start the game";
-is $fsa->switch, $fsa->state, "Number $fsa->{count}: " . $fsa->state
+ok my $state = $fsa->start, "Start the game";
+isa_ok $state, 'FSA::State';
+is $state->name, 'ping';
+is $fsa->switch, $fsa->state, "Number $fsa->{count}: " . $fsa->state->name
   until $fsa->done;
 my @check = <DATA>;
 is_deeply \@msgs, \@check, "Check that the messages are in the right order";

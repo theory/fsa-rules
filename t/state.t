@@ -3,12 +3,12 @@
 # $Id$
 
 use strict;
-#use Test::More 'no_plan';
-use Test::More tests => 40;
+use Test::More 'no_plan';
+#use Test::More tests => 40;
 
 my $CLASS;
 BEGIN { 
-    $CLASS = 'FSA::Rules';
+    $CLASS = 'FSA::Machine';
     use_ok($CLASS) or die;
 }
 
@@ -30,19 +30,24 @@ ok $fsa = $CLASS->new(
     }
 ), 'Construct with switch rules that expect parameters.';
 
-is $fsa->start, 'foo', "... It should start with 'foo'";
-is $fsa->switch('bar'), 'bar',
-  "... It should switch to 'bar' when passed 'bar'";
-is $fsa->state, 'bar', "... So the state should now be 'bar'";
-is $fsa->switch('bar'), 'bar',
+ok my $foo = $fsa->start, "... Start up the machine";
+isa_ok $foo, 'FSA::State';
+is $foo->name, 'foo', "... It should start with 'foo'";
+ok my $bar = $fsa->switch('bar'),
+  "... Switch to the next state";
+isa_ok $bar, 'FSA::State';
+is $bar->name, 'bar', "... It should start with 'bar'";
+is $fsa->switch('bar'), $bar,  "... It should switch to 'bar' when passed 'bar'";
+is $fsa->state, $bar, "... So the state should now be 'bar'";
+is $fsa->switch('bar'), $bar,
   "... It should stay as 'bar' when passed 'bar' again";
-is $fsa->state, 'bar', "... So the state should still be 'bar'";
-is $fsa->try_switch('foo'), 'foo',
+is $fsa->state, $bar, "... So the state should still be 'bar'";
+is $fsa->try_switch('foo'), $foo,
   "... It should switch back to 'foo' when passed 'foo'";
-is $fsa->state, 'foo', "... So the state should now be back to 'foo'";
+is $fsa->state, $foo, "... So the state should now be back to 'foo'";
 
 can_ok $CLASS, 'stack';
-is_deeply $fsa->stack, [qw/foo bar bar foo/],
+is_deeply $fsa->stack, [qw/foo bar bar bar foo/],
   "... and it should have a stack of the state transformations";
 
 can_ok $CLASS, 'reset';
@@ -53,23 +58,23 @@ is $fsa->state, undef, '... It set the current state to undef';
 
 # these are not duplicate tests.  We need to ensure that the state machine
 # behavior is deterministic
-is $fsa->start, 'foo', "... It should start with 'foo'";
-is $fsa->switch('bar'), 'bar',
+is $fsa->start, $foo, "... It should start with 'foo'";
+is $fsa->switch('bar'), $bar,
   "... It should switch to 'bar' when passed 'bar'";
-is $fsa->state, 'bar', "... So the state should now be 'bar'";
-is $fsa->switch('bar'), 'bar',
+is $fsa->state, $bar, "... So the state should now be 'bar'";
+is $fsa->switch('bar'), $bar,
   "... It should stay as 'bar' when passed 'bar' again";
-is $fsa->state, 'bar', "... So the state should still be 'bar'";
-is $fsa->try_switch('foo'), 'foo',
+is $fsa->state, $bar, "... So the state should still be 'bar'";
+is $fsa->try_switch('foo'), $foo,
   "... It should switch back to 'foo' when passed 'foo'";
-is $fsa->state, 'foo', "... So the state should now be back to 'foo'";
+is $fsa->state, $foo, "... So the state should now be back to 'foo'";
 is_deeply $fsa->stack, [qw/foo bar bar foo/],
   "... and it should have a stack of the state transformations";
 
-can_ok $fsa, 'set_result';
-can_ok $fsa, 'result';
-can_ok $fsa, 'set_message';
-can_ok $fsa, 'message';
+can_ok $foo, 'result';
+can_ok $foo, 'message';
+can_ok $fsa, 'last_message';
+can_ok $fsa, 'last_result';
 
 undef $fsa;
 my $counter  = 1;
@@ -77,8 +82,8 @@ my $acounter = 'a';
 ok $fsa = $CLASS->new(
     foo => {
         do    => sub {
-            my $fsa = shift;
-            $fsa->set_result($acounter++);
+            my $state = shift;
+            $state->result($acounter++);
         },
         rules => [
             bar => [ sub { $_[1]  eq 'bar' } ],
@@ -87,9 +92,9 @@ ok $fsa = $CLASS->new(
     },
     bar => {
         do    => sub {
-            my $fsa = shift;
-            $fsa->set_message("bar has been called $counter times");
-            $fsa->set_result($counter++);
+            my $state = shift;
+            $state->message("bar has been called $counter times");
+            $state->result($counter++);
         },
         rules => [
             foo => [ sub { $_[1]  eq 'foo' } ],
@@ -98,26 +103,37 @@ ok $fsa = $CLASS->new(
     }
 ), 'Construct with switch rules that expect parameters.';
 
+ok my @states = $fsa->states, "... We should get states back from states()";
+is scalar @states, 2, "... There should be two states";
+isa_ok $states[$_], 'FSA::State', "... State # $_ should be an FSA::State object"
+  for (0..1);
+is $states[0]->name, 'foo', "...The first state should be 'foo'";
+is $states[1]->name, 'bar', "...The second state should be 'foo'";
+
+($foo, $bar) = @states;
+
 $fsa->start;
 $fsa->switch('bar');
 $fsa->switch('bar');
 $fsa->switch('foo');
 
-is $fsa->result, 'b', '... and result() should return us the last result';
-is scalar $fsa->result('bar'), 2,
-  '... or the last result of the named state if called in scalar context';
-is_deeply [$fsa->result('bar')], [1,2],
-  '... or all results of of the named state if called in list context';
+is $fsa->last_result, 'b', '... and last_result() should return the last result';
+is scalar $foo->result, 'b', '... and result should return its last result';
 
-is $fsa->message, undef, 
-  '... and message should return undef if the last state had no message set';
-is scalar $fsa->message('bar'), 'bar has been called 2 times',
-  '... or the last message of the named state if called in scalar context';
-is_deeply [$fsa->message('bar')], [
+is scalar $bar->result, 2,
+  '... and the last result on bar should be returned in a scalar context';
+is_deeply [$bar->result], [1,2],
+  '... or all results of the state if called in list context';
+
+is $fsa->last_message, undef,
+  '... and last_message should return undef if the last state had no message set';
+is scalar $bar->message, 'bar has been called 2 times',
+  '... and the last result on bar should be returned in a scalar context';
+is_deeply [$bar->message], [
     'bar has been called 1 times',
     'bar has been called 2 times',
 ],
-  '... or all messages of of the named state if called in list context';
+  '... or all messages of of the state if called in list context';
 
 can_ok $fsa, 'stacktrace';
 my $stacktrace = $fsa->stacktrace;
@@ -184,5 +200,5 @@ is_deeply $fsa->raw_stacktrace, $expected,
   '... and it should return the raw data structure of the state stack.';
 
 can_ok $fsa, 'prev_state';
-is $fsa->prev_state, 'bar',
-  '... and it should correctly return the name of the previous state';
+is $fsa->prev_state->name, 'bar',
+  '... and it should correctly return the the previous state object';
