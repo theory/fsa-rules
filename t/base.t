@@ -218,7 +218,14 @@ ok $fsa = $CLASS->new(
         do => sub { shift->machine->{foo}++ },
         on_exit => sub { shift->machine->{foo_exit}++ },
         rules => [
-            bar => [sub { shift->machine->{foo} } => sub { shift->machine->{foo_bar}++ } ],
+            bar => [sub { shift->machine->{foo} },
+                    sub {
+                        my ($foo, $bar) = @_;
+                        isa_ok $_, 'FSA::State' for ($foo, $bar);
+                        is $foo->name, 'foo', 'The first parameter is "foo"';
+                        is $bar->name, 'bar', 'The second parameter is "bar"';
+                        $foo->machine->{foo_bar}++ }
+                   ],
         ],
     },
     bar => {
@@ -385,7 +392,7 @@ is $fsa->state, $state, "... The current state should be '1'";
 # Try run().
 ok $fsa = $CLASS->new(
     0 => { rules => [ 1 => [ 1, sub { shift->machine->{count}++ } ] ] },
-    1 => { rules => [ 0 => [ 1, sub { $_[0]->machine->done($_[0]->machine->{count} == 3 ) } ] ] },
+    1 => { rules => [ 0 => [ 1, sub { $_[0]->done($_[0]->machine->{count} == 3 ) } ] ] },
 ), "Construct with simple states to run";
 
 is $fsa->run, $fsa, "... Run should return the FSA object";
@@ -422,14 +429,23 @@ like $err, qr/The state "foo" already exists/,
   '... And that exception should have the proper message';
 
 # Try try_switch with parameters.
+my %prevs = ( 1 => 'foo', 2 => 'bar');
 ok $fsa = $CLASS->new(
     foo => {
+        do => sub { shift->notes(test => 'foo') },
         rules => [
             bar => [ sub { $_[1]  eq 'bar' } ],
             foo => [ sub { $_[1]  eq 'foo' } ],
         ]
     },
     bar => {
+        do => sub {
+            my $state = shift;
+            isa_ok $state->prev_state, 'FSA::State',
+              "...state->prev_state should return a state object";
+            is $state->prev_state->name, $prevs{++$state->{count}},
+              "... state->prev_state should return the previous state";
+        },
         rules => [
             foo => [ sub { $_[1]  eq 'foo' } ],
             bar => [ sub { $_[1]  eq 'bar' } ],
@@ -455,7 +471,7 @@ is $fsa->try_switch('foo'), $foo,
 is $fsa->state, $foo, "... So the state should now be back to 'foo'";
 
 # Try some notes.
-is_deeply $fsa->notes, {}, "Notes should start out empty";
+is_deeply $fsa->notes, {test => 'foo'}, "Notes should start out empty";
 is $fsa->notes( key => 'val' ), $fsa,
   "... And should get the machine back when setting a note";
 is $fsa->notes('key'), 'val',
@@ -464,7 +480,7 @@ is $fsa->notes( my => 'machine' ), $fsa,
   "We should get the machine back when setting another note";
 is $fsa->notes('my'), 'machine',
   "... And passing in the key should return the new value";
-is_deeply $fsa->notes, { key => 'val', my => 'machine' },
+is_deeply $fsa->notes, { test => 'foo', key => 'val', my => 'machine' },
   "... And passing in no arguments should return the complete notes hashref";
 is_deeply $fsa->reset, $fsa, "... Calling reset() should return the machine";
 is $fsa->notes('key'), undef, '... And now passing in a key should return undef';

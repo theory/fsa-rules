@@ -109,8 +109,12 @@ isa_ok $states[$_], 'FSA::State', "... State # $_ should be an FSA::State object
   for (0..1);
 is $states[0]->name, 'foo', "...The first state should be 'foo'";
 is $states[1]->name, 'bar', "...The second state should be 'foo'";
-
-($foo, $bar) = @states;
+is $foo = $fsa->states('foo'), $states[0],
+  "... Called with a 'foo', states() should return the appropriate state";
+is $bar = $fsa->states('bar'), $states[1],
+  "... Called with a 'bar', states() should return the appropriate state";
+is_deeply [ $fsa->states(qw(bar foo))], [@states[1, 0]],
+  "... Called with two arguments, it should return both states in the order of the arguments";
 
 $fsa->start;
 $fsa->switch('bar');
