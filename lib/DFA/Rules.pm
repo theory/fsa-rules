@@ -24,23 +24,23 @@ DFA::Rules - A simple Perl state machine
 
   my $dfa = DFA::Rules->new(
      ping => {
-         enter => sub { print "Entering ping\n" },
-         do    => [ sub { print "ping!\n" },
-                    sub { shift->{goto} = 'pong'; },
-                    sub { shift->{count}++ }
+         on_enter => sub { print "Entering ping\n" },
+         do       => [ sub { print "ping!\n" },
+                       sub { shift->{goto} = 'pong'; },
+                       sub { shift->{count}++ }
          ],
-         leave => sub { print "Leaving 'ping'\n" },
-         goto => [
+         on_exit  => sub { print "Exiting 'ping'\n" },
+         rules   => [
              pong => sub { shift->{goto} eq 'pong' },
          ],
      },
 
      pong => {
-         enter => [ sub { print "Entering pong\n" },
-                    sub { shift->{goto} = 'ping' } ],
-         do    => sub { print "pong!\n"; },
-         leave => sub { print "Leaving 'pong'\n" },
-         goto => [
+         on_enter => [ sub { print "Entering pong\n" },
+                       sub { shift->{goto} = 'ping' } ],
+         do       => sub { print "pong!\n"; },
+         on_exit  => sub { print "Exiting 'pong'\n" },
+         rules   => [
              ping => [ sub { shift->{goto} eq 'ping' },
                        sub { print "pong to ping\n" },
              ],
@@ -53,23 +53,29 @@ DFA::Rules - A simple Perl state machine
 
 =head1 Description
 
-This class implements a simple DFA state machine. I wrote it when Ovid and I
-were getting fed up with the weirdness of L<DFA::Simple|DFA::Simple>, in which
-the only things worse than the documentation are the interface and the
-implementation. 'Nuff said.
+This class implements a simple DFA state machine. As a simple implementation
+of a powerful concept, it differs slightly from the ideal DFA model in that it
+does not enforce a single possible switch from one state to another. Rather,
+it short circuits the evaluation of the rules for such switches, so that the
+first rule to return a true value will trigger its switch and no other
+switch rules will be checked.
 
 DFA::Rules uses named states so that it's easy to tell what state you're in
-and what state you want to go to. Each state may define actions that are
-triggered upon entering the state, while in the state, and upon leaving the
-state. They may also define rules for transitioning to other actions, and
-these rules may specify the execution of transition-specific actions. All
+and what state you want to go to. Each state may optionally define actions
+that are triggered upon entering the state, after entering the state, and upon
+exiting the state. They may also define rules for switching to other states,
+and these rules may specify the execution of switch-specific actions. All
 actions are defined in terms of anonymous subroutines that should expect the
 DFA object itself to be passed as the sole argument.
 
 DFA::Rules objects are implemented as empty hash references, so the action
-subroutines can use it to store data for other states to retreive without the
-possibility of interfering with the state machine itself.
+subroutines can use the DFA::Rules object passed as the sole argument to store
+data for other states to access, without the possibility of interfering with
+the state machine itself.
 
+=cut
+
+##############################################################################
 
 =head1 Class Interface
 
@@ -77,68 +83,75 @@ possibility of interfering with the state machine itself.
 
 =head3 new
 
-  my $dfa = DFA::Rules->new(%state_table);
+  my $dfa = DFA::Rules->new(@state_table);
 
-Constructs and returns a new DFA::Rulesy object. The parameters define the
+Constructs and returns a new DFA::Rules object. The parameters define the
 state table, where each key is the name of a state and the following hash
-reference defines the state, its actions, transitions, and rules. The first
-state parameter is considered to be the start state. The supported keys in the
-state definition hash references are:
+reference defines the state, its actions and its switch rules. The first state
+parameter is considered to be the start state; call the C<start()> method to
+automatically enter that state.
+
+The supported keys in the state definition hash references are:
 
 =over
 
-=item enter
+=item on_enter
 
-  enter => sub { ... }
-  enter => [ sub {... }, sub { ... } ]
+  on_enter => sub { ... }
+  on_enter => [ sub {... }, sub { ... } ]
 
-A code reference or array reference of code references. These will be executed
-when entering the state. The state object will be passed to each code
-reference as the sole argument.
+Optional. A code reference or array reference of code references. These will
+be executed when entering the state. The state object will be passed to each
+code reference as the sole argument.
 
 =item do
 
   do => sub { ... }
   do => [ sub {... }, sub { ... } ]
 
-A code reference or array reference of code references. These are the actions
-to be taken in the state, and will execute after any C<enter> code references
-and any transition code references (defined by C<goto>). The state object will
-be passed to each code reference as the sole argument.
+Optional. A code reference or array reference of code references. These are
+the actions to be taken while in the state, and will execute after any
+C<on_enter> actions and switch actions (defined by C<rules>). The state
+object will be passed to each code reference as the sole argument.
 
-=item leave
+=item on_exit
 
-  leave => sub { ... }
-  leave => [ sub {... }, sub { ... } ]
+  on_exit => sub { ... }
+  on_exit => [ sub {... }, sub { ... } ]
 
-A code reference or array reference of code references. These will be executed
-when leaving the state. The state object will be passed to each code reference
-as the sole argument.
+Optional. A code reference or array reference of code references. These will
+be executed when exiting the state, before any switch actions (defined by
+C<rules>). The state object will be passed to each code reference as the sole
+argument.
 
-=item goto
+=item rules
 
-  goto => [
+  rules => [
       state1 => \&state1_rule,
       state2 => [ \&state2_rule, \&action ],
-      state3 => undef,
-      state4 => [ undef, \&action ],
+      state3 => 1,
+      state4 => [ 1, \&action ],
   ]
 
-The rules for transfering from the state to other states. This is an array
-reference but shaped like a hash. The keys are the states to consider moving
-to, while the values are the rules for transfergin to that state. The rules
-will be executed in the order specified in the array reference, and will
-short-circuit.
+Optional. The rules for switching from the state to other states. This is an
+array reference but shaped like a hash. The keys are the states to consider
+moving to, while the values are the rules for switching to that state. The
+rules will be executed in the order specified in the array reference, and will
+short-circuit. So for efficiency it's worthwhile to specify the switch rules
+most likely to evaluate to true before those less likely to evaluate to true.
 
-A rule may take the form of a code reference or of an array reference of code
+A rule may take the form of a code reference or an array reference of code
 references. The code reference or first code reference in the array must
-return true to trigger transfer to the state, and false not to transfer to the
-state. Any other code references in the array reference will be executed
-during the transfer, after the C<leave> subroutines have been executed in the
-current state, but before the C<enter> subroutines execute in the new state.
+return true to trigger the switch to the new state, and false not to switch to
+the new state. Any other code references in the array will be executed during
+the switch, after the C<on_exit> actions have been executed in the current
+state, but before the C<on_enter> actions execute in the new state.
 
-A rule may also be simply C<undef>, in which case it I<always> triggers the
-transfer.
+A rule may also be simply specify scalar variable, in which case that value
+will be used to determine whether the rule evaluates to a true or false value.
+You may also use a simple scalar as the first item in an array reference if
+you also need to specify switch actions. Either way, a true value always
+triggers the switch, while a false value never will.
 
 =back
 
@@ -149,14 +162,19 @@ my %states;
 sub new {
     my $class = shift;
     my $self = bless {}, $class;
-    $states{$self} = { table => {}};
+    $states{$self} = {
+        table => {},
+        start => $_[0],
+    };
+
     while (@_) {
         my $state = shift;
         my $def = shift;
-        $states{$self}->{start} ||= $state;
+        require Carp && Carp::croak(qq{The state "$state" already exists})
+          if $states{$self}->{table}{$state};
 
-        # Setup enter, leave, and do actions.
-        for (qw(enter do leave)) {
+        # Setup enter, exit, and do actions.
+        for (qw(on_enter do on_exit)) {
             if (my $ref = ref $def->{$_}) {
                 $def->{$_} = [$def->{$_}] if $ref eq 'CODE';
             } else {
@@ -167,30 +185,30 @@ sub new {
         $states{$self}->{table}{$state} = $def;
     }
 
-    # Setup goto rules. We process the table a second time to catch invalid
+    # Setup rules. We process the table a second time to catch invalid
     # references.
     while (my ($key, $def) = each %{$states{$self}->{table}}) {
-        if (my $goto_spec = $def->{goto}) {
-            my @gotos;
-            while (@$goto_spec) {
-                my $state = shift @$goto_spec;
+        if (my $rule_spec = $def->{rules}) {
+            my @rules;
+            while (@$rule_spec) {
+                my $state = shift @$rule_spec;
                 require Carp &&Carp::croak(
                     qq{Unknown state "$state" referenced by state "$key"}
                 ) unless $states{$self}->{table}{$state};
 
-                my $rules = shift @$goto_spec;
+                my $rules = shift @$rule_spec;
                 my $exec = ref $rules eq 'ARRAY' ? $rules : [$rules];
                 my $rule = shift @$exec;
                 $rule = sub { $rule } unless ref $rule eq 'CODE';
-                push @gotos, {
+                push @rules, {
                     state => $state,
                     rule  => $rule,
                     exec  => $exec,
                 };
             }
-            $def->{goto} = \@gotos;
+            $def->{rules} = \@rules;
         } else {
-            $def->{goto} = [];
+            $def->{rules} = [];
         }
     }
 
@@ -208,14 +226,16 @@ sub new {
   $dfa->start;
 
 Starts the state machine by setting the state to the first state defined in
-the call to C<new()>.
+the call to C<new()>. Returns the name of the start state.
 
 =cut
 
 sub start {
     my $self = shift;
-    my $state = $states{$self}->{start} or return $self;
+    my $state = $states{$self}->{start};
+    return $self unless defined $state;
     $self->state($state);
+    return $state;
 }
 
 ##############################################################################
@@ -225,9 +245,10 @@ sub start {
   my $state = $dfa->state;
   $dfa->state($state);
 
-Get or set the current state. Setting the state causes the C<leave> actions
+Get or set the current state. Setting the state causes the C<on_exit> actions
 of the current state to be executed, if there is a current state, and then
-executes the C<enter> and C<do> actions of the new state.
+executes the C<on_enter> and C<do> actions of the new state. Returns the
+DFA::Rules object when setting the state.
 
 =cut
 
@@ -240,52 +261,137 @@ sub state {
       or require Carp && Carp::croak(qq{No such state "$state"});
 
     if (my $state = $states{$self}->{current}) {
-        # Leave the current state.
+        # Exit the current state.
         my $def = $states{$self}->{table}{$state};
-        $_->($self) for @{$def->{leave}};
+        $_->($self) for @{$def->{on_exit}};
     }
 
-    # Run any transition actions.
+    # Run any switch actions.
     if (my $exec = delete $states{$self}->{exec}) {
         $_->($self) for @$exec;
     }
 
     # Set the new state.
     $states{$self}->{current} = $state;
-    $_->($self) for @{$def->{enter}};
+    $_->($self) for @{$def->{on_enter}};
     $_->($self) for @{$def->{do}};
     return $self;
 }
 
 ##############################################################################
 
-=head3 check
+=head3 try_switch
 
-  $dfa->check;
+  my $state = $dfa->try_switch;
 
-Checks the transition rules of the current state and transitions to the first
-new state for which a rule returns a true value. If the transition rule has
-transition actions, they will be executed after the C<leave> actions of the
-current state (if there is one) but before the C<enter> actions of the new
-state.
+Checks the switch rules of the current state and switches to the first new
+state for which a rule returns a true value. If the switch rule has switch
+actions, they will be executed after the C<on_exit> actions of the current
+state (if there is one) but before the C<on_enter> actions of the new state.
+Returns the name of the state to which it switched and C<undef> if it cannot
+switch to another state.
 
 =cut
 
-sub check {
+sub try_switch {
     my $self = shift;
     my $def = $states{$self}->{table}{$states{$self}->{current}};
-    for my $goto (@{$def->{goto}}) {
-        my $code = $goto->{rule};
+    for my $rule (@{$def->{rules}}) {
+        my $code = $rule->{rule};
         next unless $code->($self);
-        $states{$self}->{exec} = $goto->{exec};
-        return $self->state($goto->{state});
+        $states{$self}->{exec} = $rule->{exec};
+        $self->state($rule->{state});
+        return $rule->{state};
     }
+    return undef;
+}
+
+##############################################################################
+
+=head3 switch
+
+  my $state = eval { $dfa->switch };
+  print "No can do" if $@;
+
+The fatal form of C<try_switch()>. This method attempts to switch states and
+returns the name of the new state on success and throws an exception on
+failure.
+
+=cut
+
+sub switch {
+    my $self = shift;
+    my $ret = $self->try_switch(@_);
+    return $ret if defined $ret;
     require Carp;
-    Carp::croak(qq{Cannot determine transition from state "$states{$self}->{current}"});
+    Carp::croak(
+        qq{Cannot determine transition from state "$states{$self}->{current}"}
+    );
+}
+
+##############################################################################
+
+=head3 done
+
+  my $done = $dfa->done;
+  $dfa->done($done);
+
+Get or set a value to indicate whether the engine is done running. This can be
+useful for state actions to set to the appropriate value, and then the user of
+the state object can simply call done as appropriate. Something like this:
+
+  $dfa->start;
+  $dfa->switch until $dfa->done;
+
+Although you could just use the C<run()> method if you wanted to do that.
+
+=cut
+
+sub done {
+    my $self = shift;
+    return $states{$self}->{done} unless @_;
+    $states{$self}->{done} = shift;
+    return $self;
+}
+
+##############################################################################
+
+=head3 run
+
+  $dfa->run;
+
+This method starts the DFA engine (if it hasn't already been set to a state)
+and then calls the C<switch()> method repeatedly until C<done()> returns a
+true value. IOW, it's a convenient shortcut for:
+
+    $dfa->start unless $states{$self}->{current};
+    $dfa->switch until $self->done;
+
+But be careful when calling this method. If you have no failed swtiches
+between states and the states never set the C<done> attribute to a true value,
+then this method will never die or return, but run forever. So plan carefully!
+
+Returns the DFA object.
+
+=cut
+
+sub run {
+    my $self = shift;
+    $self->start unless $states{$self}->{current};
+    $self->switch until $self->done;
+    return $self;
 }
 
 1;
 __END__
+
+=head1 To Do
+
+=over
+
+=item Add tracing.
+
+=back
 
 =head1 Bugs
 

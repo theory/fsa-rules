@@ -3,6 +3,21 @@ Revision history for Perl extension DFA::Rules.
 0.02
       - Changed name to DFA::Rules. Thanks to the module-authors list for the
         feedback!
+      - Changed the "enter" and "leave" parameters to "on_enter" and
+        "on_exit", respectively. Suggested by Tim Bunce.
+      - Changed the "check()" method to "switch()" and modified it to return
+        the name of the state to which it switched.
+      - Added "try_switch()", which returns the name of the state to which
+        it switched on success, and "undef" on failure.
+      - Changed the "start()" method to return the name of the start state.
+      - Added support for numbered states, including "0". Reported by
+        Curtis Poe.
+      - Changed the "goto" parameter to "rules" to better reflect their
+        role and for parity with the new module name.
+      - Added the "done" attribute and "run()" method. Suggested by Curtis
+        Poe.
+      - Added a check for duplicate state names in "new()". Suggested by
+        Curtis Poe.
 
 0.01  2004-12-15T07:12:22
       - Initial public release (to module-authors@perl.org only).
