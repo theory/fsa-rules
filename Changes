@@ -1,7 +1,9 @@
 Revision history for Perl extension FSA::Rules.
 
 0.10
-      - Moved state-specific methods to new FSA::State class.
+      - Moved state-specific methods to new FSA::State class. This is a
+        pretty significant change and can introduce backwards compatability
+        issues, so the version has been bumped up to 0.10.
       - FSA::State objects are now passed to state actions, rather than the
         FSA::Rules object.
       - Switch actions now take two argumets: The current FSA::State object
