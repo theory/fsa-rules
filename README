@@ -161,8 +161,38 @@ Instance Interface
     and returns the name of the new state on success and throws an exception
     on failure.
 
+   done
+      my $done = $fsa->done;
+      $fsa->done($done);
+
+    Get or set a value to indicate whether the engine is done running. This
+    can be useful for state actions to set to the appropriate value, and
+    then the user of the state object can simply call done as appropriate.
+    Something like this:
+
+      $fsa->start;
+      $fsa->switch until $fsa->done;
+
+    Although you could just use the "run()" method if you wanted to do that.
+
+   run
+      $fsa->run;
+
+    This method starts the FSA engine (if it hasn't already been set to a
+    state) and then calls the "switch()" method repeatedly until "done()"
+    returns a true value. IOW, it's a convenient shortcut for:
+
+        $fsa->start unless $states{$self}->{current};
+        $fsa->switch until $self->done;
+
+    But be careful when calling this method. If you have no failed swtiches
+    between states and the states never set the "done" attribute to a true
+    value, then this method will never die or return, but run forever. So
+    plan carefully!
+
+    Returns the FSA object.
+
 To Do
-    Add done() callback.
     Add tracing.
 
 Bugs
