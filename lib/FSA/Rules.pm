@@ -39,7 +39,7 @@ FSA::Rules - Build simple rules-based state machines in Perl
 
      pong => {
          do => sub { print "pong!\n" },
-         rules => [ ping => 1, ], # always goes back to pong
+         rules => [ ping => 1, ], # always goes back to ping
      },
      game_over => { do => sub { print "Game Over" } }
   );
