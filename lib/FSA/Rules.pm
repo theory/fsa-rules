@@ -171,11 +171,17 @@ argument.
       state2 => [ \&state2_rule, \&action ],
       state3 => 1,
       state4 => [ 1, \&action ],
-      state5 => { $optional_label => \&action },
-      state6 => [
-          { $optional_label  => \&action1 },
-          { $optional_label2 => 3 },
-      ],
+      state5 => {
+          rule => \&state5_rule,
+      },
+      state6 => {
+          rule => 1,
+      },
+      state7 => {
+          rule => \&state7_rule,
+          message => $optional_message,
+          actions => \@optional_actions,
+      },
   ]
 
 Optional. The rules for switching from the state to other states. This is an
