@@ -22,36 +22,34 @@ FSA::Rules - Build simple rules-based state machines in Perl
 
 =head1 Synopsis
 
-  use FSA::Rules;
-
   my $fsa = FSA::Rules->new(
      ping => {
          on_enter => sub { print "Entering ping\n" },
          do       => [ sub { print "ping!\n" },
-                       sub { shift->{goto} = 'pong'; },
-                       sub { shift->{count}++ }
+                       sub { shift->notes(goto => 'pong'); },
+                       sub { shift->machine->{count}++ }
          ],
          on_exit  => sub { print "Exiting 'ping'\n" },
          rules    => [
-             pong => sub { shift->{goto} eq 'pong' },
+             pong => sub { shift->notes('goto') eq 'pong' },
          ],
      },
 
      pong => {
          on_enter => [ sub { print "Entering pong\n" },
-                       sub { shift->{goto} = 'ping' } ],
+                       sub { shift->notes(goto => 'ping') } ],
          do       => sub { print "pong!\n"; },
          on_exit  => sub { print "Exiting 'pong'\n" },
          rules    => [
-             ping => [ sub { shift->{goto} eq 'ping' },
+             ping => [ sub { shift->notes('goto') eq 'ping' },
                        sub { print "pong to ping\n" },
-             ],
+             ]
          ],
      },
   );
 
   $fsa->start;
-  $fsa->done(sub { shift->{count} <= 21 });
+  $fsa->done(sub { shift->{count} >= 21 });
   $fsa->switch until $fsa->done;
 
 =head1 Description

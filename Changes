@@ -5,12 +5,21 @@ Revision history for Perl extension FSA::Rules.
         pretty significant change and can introduce backwards compatability
         issues, so the version has been bumped up to 0.10.
       - FSA::State objects are now passed to state actions, rather than the
-        FSA::Rules object.
-      - Switch actions now take two argumets: The current FSA::State object
-        and the FSA::State object for the new state.
-      - Added notes() method.
+        FSA::Rules object. Call their machine() method to get the FSA::Rules
+        object.
+      - Switch actions are now passed two arguments: The current FSA::State
+        object and the FSA::State object for the new state.
+      - Added notes() method for storing arbitrary notes in the FSA::Rules
+        object.
       - Added states() method to return one or more of the state objects in
         a machine.
+      - Moved the "message" and "result" methods to the state class. The
+        "set_" forms are gone now, since you don't need to specify a state
+        when you have a state. Added last_message() and last_result()
+        methods to FSA::Rules to get the most recent messages and results
+        from the states.
+      - Added convenience methods prev_state(), notes(), and done() to the
+        state class to reach back into the FSA::Rules object.
 
 0.07  2004-12-16T22:23:43
       - Updated the synopsis to no longer document non-existant methods.
@@ -21,9 +30,9 @@ Revision history for Perl extension FSA::Rules.
         debugging. Implementation by Curtis Poe.
 
 0.06  2004-12-16T02:05:01
-      - Added a C<stack()> method to return an arrayref of state 
-        transformations. Implementation by Curtis Poe.
-      - Added C<reset()> which resets the state machine to a pristince state.
+      - Added a stack() method to return an arrayref of state transformations.
+        Implementation by Curtis Poe.
+      - Added reset() which resets the state machine to a pristince state.
         Implementation by Curtis Poe.
 
 0.05  2004-12-16T00:50:49
@@ -32,7 +41,7 @@ Revision history for Perl extension FSA::Rules.
         rule table. Suggested by Paul Hoffman.
 
 0.04  2004-12-16T00:19:41
-      - Changed "done()" to evaluate a code reference if a code reference is
+      - Changed done() to evaluate a code reference if a code reference is
         what is passed to it. Suggested by Curtis Poe.
 
 0.03  2004-12-15T23:45:39
@@ -43,18 +52,18 @@ Revision history for Perl extension FSA::Rules.
         feedback!
       - Changed the "enter" and "leave" parameters to "on_enter" and
         "on_exit", respectively. Suggested by Tim Bunce.
-      - Changed the "check()" method to "switch()" and modified it to return
+      - Changed the check() method to switch() and modified it to return
         the name of the state to which it switched.
-      - Added "try_switch()", which returns the name of the state to which
+      - Added try_switch(), which returns the name of the state to which
         it switched on success, and "undef" on failure.
-      - Changed the "start()" method to return the name of the start state.
+      - Changed the start() method to return the name of the start state.
       - Added support for numbered states, including "0". Reported by
         Curtis Poe.
       - Changed the "goto" parameter to "rules" to better reflect their
         role and for parity with the new module name.
-      - Added the "done" attribute and "run()" method. Suggested by Curtis
+      - Added the "done" attribute and run() method. Suggested by Curtis
         Poe.
-      - Added a check for duplicate state names in "new()". Suggested by
+      - Added a check for duplicate state names in new(). Suggested by
         Curtis Poe.
 
 0.01  2004-12-15T07:12:22
