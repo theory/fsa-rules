@@ -3,7 +3,7 @@ package FSA::Rules;
 # $Id$
 
 use strict;
-$FSA::Rules::VERSION = '0.07';
+$FSA::Rules::VERSION = '0.08';
 
 =begin comment
 
@@ -286,7 +286,7 @@ sub state {
     }
 
     # Push the new state onto the stack.
-    push @{$states{$self}->{stack}} => $state;
+    push @{$states{$self}->{stack}} => [$state,{ result => undef, message => undef}];
 
     # Set the new state.
     $states{$self}->{current} = $state;
@@ -433,24 +433,6 @@ sub run {
     $self->switch until $self->done;
     return $self;
 }
-
-##############################################################################
-
-=head3 stack
-
-  my $stack = $fsa->stack;
-
-Returns an array reference of all states the machine has been in beginning
-with the first state and ending with the current state. No state name will be
-added to the stack until the machine has been in that state. This method is
-useful for debugging.
-
-=cut
-
-sub stack {
-    return $states{$_[0]}->{stack};
-}
-
 ##############################################################################
 
 =head3 reset
@@ -474,6 +456,260 @@ sub reset {
     $states{$self}->{stack}   = [];
     $states{$self}->{current} = undef;
     return $self;
+}
+
+##############################################################################
+
+=head1 State Interface
+
+=head2 Disclaimer
+
+Eventually states will be objects.  For the time being they're not.  This interface
+may therefore change, particularly the C<raw_stacktrace()> output.
+
+##############################################################################
+
+=head3 set_result
+
+  my @states = (
+    ...
+    some_state => {
+        do => sub {
+          my $fsa = shift;
+          $fsa->set_result(some_func());
+        },
+        rules => [
+          bad  => sub { ! shift->result },
+          good => sub {   shift->result },
+        ]
+    },
+    ...
+  );
+
+This is a useful method to store results on a per state basis.  Anything can be
+stored in the result slot.  The contents of the result slot can be returned
+with C<result()> or viewed in a C<stacktrace> or C<raw_stacktrace>.
+
+Note that C<set_result()> operates on a per state basis.  Calling it in the
+C<on_entry> action, the C<do> action and the C<on_exit> action will result in
+only the C<on_exit> value remaining.
+
+=cut
+
+sub set_result {
+    my $self = shift;
+    $states{$self}->{stack}[-1][1]{result} = shift;
+    return $self;
+}
+
+##############################################################################
+
+=head3 set_message
+
+  my @states = (
+    ...
+    some_state => {
+        do => sub {
+          my $fsa = shift;
+          $fsa->set_message(some_func());
+        },
+        rules => [
+          bad  => sub { ! shift->message },
+          good => sub {   shift->message },
+        ]
+    },
+    ...
+  );
+
+This is a useful method to store messages on a per state basis.  Anything can be
+stored in the message slot.  The contents of the message slot can be returned
+with C<message()> or viewed in a C<stacktrace> or C<raw_stacktrace>.
+
+Note that C<set_message()> operates on a per state basis.  Calling it in the
+C<on_entry> action, the C<do> action and the C<on_exit> action will message in
+only the C<on_exit> value remaining.
+
+There is no difference between this and the C<set_result()> method aside from
+having a convenient extra "per state" slot.
+
+=cut
+
+sub set_message {
+    my $self = shift;
+    $states{$self}->{stack}[-1][1]{message} = shift;
+    return $self;
+}
+
+##############################################################################
+
+=head3 result
+
+  $fsa->result([$state]);
+
+Fetch the contents of the result slot.  If no state is specified, it will
+always return the results for the current state.  If a state name is provided,
+it will return the I<last> result for the named state if called in scalar
+context.  Otherwise, it will return the I<all> results for the given state,
+from first to last.
+
+=cut
+
+sub result {
+    my $self = shift;
+    my @results = $self->_state_slot('result', @_);
+    return wantarray ? @results : $results[-1];
+}
+
+##############################################################################
+
+=head3 message
+
+  $fsa->message([$state]);
+
+Fetch the contents of the message slot.  If no state is specified, it will
+always return the messages for the current state.  If a state name is provided,
+it will return the I<last> message for the named state if called in scalar
+context.  Otherwise, it will return the I<all> messages for the given state,
+from first to last.
+
+There is no difference between this and the C<result()> method aside from
+having a convenient extra "per state" slot.
+
+=cut
+
+sub message {
+    my $self = shift;
+    my @messages = $self->_state_slot('message', @_);
+    return wantarray ? @messages : $messages[-1];
+}
+
+# not documented because this *will* change when state objects
+# are introduced.
+
+sub _state_slot {
+    my $self = shift;
+    my $slot = shift;
+    return $states{$self}->{stack}[-1][1]{$slot} unless @_;
+    my $state = shift;
+    return  
+      map  { $_->[1]{$slot} } 
+      grep { $_->[0] eq $state } 
+        @{$self->raw_stacktrace};
+}
+
+##############################################################################
+
+=head3 stack
+
+  my $stack = $fsa->stack;
+
+Returns an array reference of all states the machine has been in beginning
+with the first state and ending with the current state. No state name will be
+added to the stack until the machine has been in that state. This method is
+useful for debugging.
+
+=cut
+
+sub stack {
+    my $self = shift;
+    return [map { $_->[0] } @{$states{$self}->{stack}}];
+}
+
+##############################################################################
+
+=head3 stacktrace
+
+  my $trace = $fsa->stacktrace;
+
+Similar to the C<stack()> method, but it also includes all C<result>s and
+C<message>s.  However, this returns a human readable stacktrace with nicely
+formatted data.  It also includes the C<result>s and the C<message>s.   If you
+need the raw data, see C<raw_stacktrace>.
+
+For example, if your state machine ran for only three states, the output may
+resemble the following:
+
+ print $fsa->stacktrace;
+
+State: foo
+{
+  message => 'some message',
+  result => 'a'
+}
+
+State: bar
+{
+  message => 'another message',
+  result => 1
+}
+
+State: bar
+{
+  message => 'and yet another message',
+  result => 2
+}
+
+=cut
+
+sub stacktrace {
+    my $states     = shift->raw_stacktrace;
+    my $stacktrace = '';
+    require Data::Dumper;
+    local $Data::Dumper::Terse     = 1;
+    local $Data::Dumper::Indent    = 1;
+    local $Data::Dumper::Quotekeys = 0;
+    foreach my $state (@$states) {
+        $stacktrace .= "State: $state->[0]\n";
+        $stacktrace .= Data::Dumper::Dumper($state->[1]);
+        $stacktrace .= "\n";
+    }
+    return $stacktrace;   
+}
+
+##############################################################################
+
+=head3 raw_stacktrace 
+
+  my $stacktrace = $fsa->raw_stacktrace;
+
+This method returns an arrayref of states.  Each state is an arrayref with two
+elements.  The first element is the name of the state and the second element is
+a hashref with two keys, 'result' and 'message'.  These are set to the values
+(if used) created with the C<set_result()> and C<set_message()> methods.
+
+A sample state:
+
+ [
+     some_state,
+     {
+         result  => 7,
+         message => 'A human readable message'
+     }
+ ]
+
+=cut
+
+sub raw_stacktrace {
+    my $self = shift;
+    return $states{$self}->{stack};
+}
+
+##############################################################################
+
+=head3 prev_state
+
+  my $prev_state = $fsa->prev_state;
+
+This returns the name of the previous state.  This is useful in states where you
+need to know the state you came from.  Very useful in "fail" states.
+
+=cut
+
+sub prev_state {
+    my $self = shift;
+    my $stacktrace = $self->raw_stacktrace;
+    return unless @$stacktrace > 1;
+    return $stacktrace->[-2][0];
 }
 
 1;
