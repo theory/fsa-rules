@@ -263,13 +263,18 @@ sub new {
   my $state = $fsa->start;
 
 Starts the state machine by setting the state to the first state defined in
-the call to C<new()>. Returns the start state FSA::State object.
+the call to C<new()>. If the machine is already in a state, an exception will
+be thrown. Returns the start state FSA::State object.
 
 =cut
 
 sub start {
     my $self = shift;
-    my $state = $machines{$self}->{ord}[0] or return $self;
+    my $fsa = $machines{$self};
+    require Carp && Carp::croak(
+        'Cannot start machine because it is already running'
+    ) if $fsa->{current};
+    my $state = $fsa->{ord}[0] or return $self;
     $self->state($state);
     return $state;
 }
@@ -953,10 +958,6 @@ __END__
 =item strict
 
 =item error_handler
-
-=back
-
-=item Have start() not set the state if there is already a state?
 
 =back
 

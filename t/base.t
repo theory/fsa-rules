@@ -342,6 +342,10 @@ isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
 is $fsa->state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The code should now have been executed";
+eval { $fsa->start };
+ok $err = $@, '... Calling start on a running machine should die';
+like $err, qr/Cannot start machine because it is already running/,
+  '... And it should throw the proper exception';
 
 # Try start() with a second state.
 ok $fsa = $CLASS->new(
