@@ -115,8 +115,8 @@ A value to which to set the C<strict> attribute.
 
 =item state_class
 
-The name of the class to use for state objects. Defaults to "FSA::State". This
-will be useful for subclasses of FSA::State.
+The name of the class to use for state objects. Defaults to "FSA::State". Use
+this parameter if you want to use a subclass of FSA::State.
 
 =back
 
@@ -885,10 +885,10 @@ sub stacktrace {
 
 =head3 graph
 
-  $rules->graph(@graph_viz_args);
+  $fsa->graph(@graph_viz_args);
 
-This method takes the same arguments as the C<GraphViz> constructor.  Returns
-a C<GraphViz> object.
+This method takes the same arguments as the C<GraphViz> constructor. Returns a
+C<GraphViz> object.
 
 If C<GraphViz> is not available on your system, this method will warn and
 return.
@@ -904,7 +904,7 @@ sub graph {
     }
     my ($machine) = clone($machines{$self}->{graph});
     my $graph = GraphViz->new(@_);
-    while (my ($state,$definition) = splice @$machine => 0, 2) {
+    while (my ($state, $definition) = splice @$machine => 0, 2) {
         $graph->add_node($state);
         next unless exists $definition->{rules};
         while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
