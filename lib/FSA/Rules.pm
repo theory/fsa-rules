@@ -3,6 +3,7 @@ package FSA::Rules;
 # $Id$
 
 use strict;
+use Clone qw/clone/;
 $FSA::Rules::VERSION = '0.11';
 
 =begin comment
@@ -171,6 +172,11 @@ argument.
       state2 => [ \&state2_rule, \&action ],
       state3 => 1,
       state4 => [ 1, \&action ],
+      state5 => { $optional_label => \&action },
+      state6 => [
+          { $optional_label  => \&action1 },
+          { $optional_label2 => 3 },
+      ],
   ]
 
 Optional. The rules for switching from the state to other states. This is an
@@ -206,6 +212,13 @@ You may also use a simple scalar as the first item in an array reference if
 you also need to specify switch actions. Either way, a true value always
 triggers the switch, while a false value never will.
 
+For every position in the rules array where one would expect to find a
+subroutine reference, a hash reference may be substituted.  This reference may
+have only one key (a rule label) and the value must be the code reference.
+This not not affect normal operation.  However, if one wishes to create a graph
+of the state machine, these optional labels will be used as the labels on a
+directed graph, making the state machine graph easier to understand.
+
 =back
 
 =cut
@@ -215,19 +228,19 @@ my (%machines, %states);
 sub new {
     my $class = shift;
     my $self = bless {}, $class;
-    my $fsa = $machines{$self} = {
-        table => {},
-        done  => sub { return },
-        stack => [],
-        notes => {},
-    };
-
     my $params = ref $_[0] ? shift : {};
+    my $fsa = $machines{$self} = {
+        done   => sub { return },
+        notes  => {},
+        stack  => [],
+        table  => {},
+        graph  => clone(\@_),
+    };
 
     while (@_) {
         my $state = shift;
         my $def = shift;
-        require Carp && Carp::croak(qq{The state "$state" already exists})
+        $self->_croak(qq{The state "$state" already exists})
           if $fsa->{table}{$state};
 
         # Setup enter, exit, and do actions.
@@ -256,13 +269,19 @@ sub new {
             my @rules;
             while (@$rule_spec) {
                 my $state = shift @$rule_spec;
-                require Carp &&Carp::croak(
+                $self->_croak(
                     qq{Unknown state "$state" referenced by state "$key"}
                 ) unless $fsa->{table}{$state};
 
                 my $rules = shift @$rule_spec;
                 my $exec = ref $rules eq 'ARRAY' ? $rules : [$rules];
                 my $rule = shift @$exec;
+                if (ref $rule eq 'HASH') {
+                    my @key = keys %$rule;
+                    $self->_croak(qq{Attempt to define more than one label for state "$key" in rule "$state"})
+                      if @key > 1;
+                    $rule = $rule->{$key[0]}; # extract the code block and ignore the label
+                }
                 $rule = sub { $rule } unless ref $rule eq 'CODE';
                 push @rules, {
                     state => $fsa->{table}{$state},
@@ -281,6 +300,12 @@ sub new {
     $self->done($params->{done}) if exists $params->{done};
     $self->strict($params->{strict}) if exists $params->{strict};
     return $self;
+}
+
+sub _croak {
+    my ($proto, @messages) = @_;
+    require Carp;
+    Carp::croak(@messages);
 }
 
 ##############################################################################
@@ -302,7 +327,7 @@ be thrown. Returns the start state FSA::State object.
 sub start {
     my $self = shift;
     my $fsa = $machines{$self};
-    require Carp && Carp::croak(
+    $self->_croak(
         'Cannot start machine because it is already running'
     ) if $fsa->{current};
     my $state = $fsa->{ord}[0] or return $self;
@@ -335,7 +360,7 @@ sub state {
     unless (ref $state) {
         my $name = $state;
         $state = $fsa->{table}{$name}
-          or require Carp && Carp::croak(qq{No such state "$name"});
+          or $self->_croak(qq{No such state "$name"});
     }
 
     # Exit the current state.
@@ -375,6 +400,44 @@ sub prev_state {
     my $stacktrace = $self->raw_stacktrace;
     return unless @$stacktrace > 1;
     return $machines{$self}->{table}{$stacktrace->[-2][0]};
+}
+
+##############################################################################
+
+=head3 graph
+
+  $rules->graph(@graph_viz_args);
+
+This method takes the same arguments as the C<GraphViz> constructor.  Returns
+a C<GraphViz> object.
+
+If C<GraphViz> is not available on your system, this method will warn and
+return.
+
+=cut
+
+sub graph {
+    my $self = shift;
+    eval "use GraphViz;";
+    if ($@) {
+        warn "Cannot create graph object: $@";
+        return;
+    }
+    my ($machine) = clone($machines{$self}->{graph});
+    my $graph = GraphViz->new(@_);
+    while (my ($state,$definition) = splice @$machine => 0, 2) {
+        $graph->add_node($state);
+        next unless exists $definition->{rules};
+        while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
+            my @edge = ($state => $rule);
+            if (ref $condition eq 'HASH') {
+                my @key = keys %$condition;
+                push @edge => 'label', $key[0]; # constructor enforces only one key
+            }
+            $graph->add_edge(@edge);
+        }
+    }
+    return $graph;
 }
 
 ##############################################################################
@@ -450,8 +513,7 @@ sub try_switch {
 
     if (@rules && $self->strict) {
         if (my @new = grep { my $c = $_->{rule}; $c->($state, @_) } @rules) {
-            require Carp;
-            Carp::croak(
+            $self->_croak(
                 'Attempt to switch from state "', $state->name,
                 '" improperly found multiple possible destination states: "',
                 join('", "', map { $_->{state}->name } $rule, @new), '"'
@@ -478,8 +540,7 @@ sub switch {
     my $self = shift;
     my $ret = $self->try_switch(@_);
     return $ret if defined $ret;
-    require Carp;
-    Carp::croak(
+    $self->_croak(
         'Cannot determine transition from state "',
         $machines{$self}->{current}->name, '"'
     );
@@ -784,6 +845,7 @@ sub stacktrace {
     local $Data::Dumper::Terse     = 1;
     local $Data::Dumper::Indent    = 1;
     local $Data::Dumper::Quotekeys = 0;
+    local $Data::Dumper::Sortkeys  = 0;
     foreach my $state (@$states) {
         $stacktrace .= "State: $state->[0]\n";
         $stacktrace .= Data::Dumper::Dumper($state->[1]);

@@ -3,8 +3,8 @@
 # $Id$
 
 use strict;
-#use Test::More tests => 14;
-use Test::More 'no_plan';
+use Test::More tests => 16;
+#use Test::More 'no_plan';
 
 BEGIN { use_ok('FSA::Rules') }
 

@@ -3,8 +3,8 @@
 # $Id$
 
 use strict;
-use Test::More 'no_plan';
-#use Test::More tests => 40;
+#use Test::More 'no_plan';
+use Test::More tests => 57;
 
 my $CLASS;
 BEGIN { 

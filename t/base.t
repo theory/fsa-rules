@@ -3,8 +3,8 @@
 # $Id$
 
 use strict;
-use Test::More 'no_plan';
-#use Test::More tests => 176;
+#use Test::More 'no_plan';
+use Test::More tests => 284;
 
 my $CLASS;
 BEGIN { 
@@ -213,6 +213,42 @@ eval { $fsa->switch };
 ok $err = $@, "... Another attempt to switch should fail";
 like $err, qr/Cannot determine transition from state "bar"/,
   "... And throw the proper exception";
+
+# Test that rule labels are no-ops for normal operation
+ok $fsa = $CLASS->new(
+    foo => {
+        on_enter => sub { shift->machine->{foo_enter}++ },
+        do => sub { shift->machine->{foo}++ },
+        on_exit => sub { shift->machine->{foo_exit}++ },
+        rules => [
+            bar => { 'some rule label' => sub { shift->machine->{foo} } },
+        ],
+    },
+    bar => {
+        on_enter => sub { shift->machine->{bar_enter}++ },
+        do => sub { $_[0]->machine->{bar} = $_[0]->machine->{bar_enter} },
+    },
+), "Construct with a two states and a switch rule";
+
+is $fsa->state, undef, "Adding labels to rules should not affect behavior";
+is $fsa->{foo}, undef, "... The foo code should not have been executed";
+is $fsa->{foo_enter}, undef, "... The 'foo' enter code should not have executed";
+is $fsa->{bar}, undef, "... The bar code should not have been executed";
+is $fsa->{bar_enter}, undef, "... The enter code should not have executed";
+ok $state = $fsa->state('foo'), "... We should be able to set the state";
+isa_ok $state, 'FSA::State';
+is $state->name, 'foo', "... The name of the current state should be 'foo'";
+is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->{foo}, 1, "... The 'foo' code should now have been executed";
+is $fsa->{foo_enter}, 1, "... The  'foo' enter action should have executed";
+is $fsa->{foo_exit}, undef, "... The 'foo' exit action should not have executed";
+ok $state =  $fsa->try_switch, "... The try_switch method should return the 'bar' state";
+isa_ok $state, 'FSA::State';
+is $state->name, 'bar', "... The name of the current state should be 'bar'";
+is $fsa->state, $state, "... The current state should be 'bar'";
+is $fsa->{foo_exit}, 1, "... Now the 'foo' exit action should have executed";
+is $fsa->{bar}, 1, "... And the 'bar' code should now have been executed";
+is $fsa->{bar_enter}, 1, "... And the 'bar' enter action should have executed";
 
 # Try switch actions.
 ok $fsa = $CLASS->new(
