@@ -4,7 +4,7 @@ package FSA::Rules;
 
 use strict;
 use Clone qw/clone/;
-$FSA::Rules::VERSION = '0.20';
+$FSA::Rules::VERSION = '0.21';
 
 =begin comment
 
