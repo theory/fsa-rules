@@ -1,6 +1,8 @@
-Revision history for Perl extension Widget::Meta.
+Revision history for Perl extension DFA::Rules.
 
 0.02
+      - Changed name to DFA::Rules. Thanks to the module-authors list for the
+        feedback!
 
 0.01  2004-12-15T07:12:22
       - Initial public release (to module-authors@perl.org only).

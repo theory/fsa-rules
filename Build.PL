@@ -1,7 +1,7 @@
 use Module::Build;
 
 my $build = Module::Build->new(
-    module_name        => 'DFA::StateMachine',
+    module_name        => 'DFA::Rules',
     license            => 'perl',
     build_requires     => { Test::Simple  => '0.17' },
     create_makefile_pl => 'passthrough',

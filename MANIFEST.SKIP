@@ -25,4 +25,4 @@
 \b\.#
 
 # Avoid build files.
-^DFA-StateMachine
+^DFA-Rules

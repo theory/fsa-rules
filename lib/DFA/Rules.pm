@@ -1,9 +1,9 @@
-package DFA::StateMachine;
+package DFA::Rules;
 
 # $Id$
 
 use strict;
-$DFA::StateMachine::VERSION = '0.02';
+$DFA::Rules::VERSION = '0.02';
 
 =head1 Name
 
@@ -16,13 +16,13 @@ other than all uppercase.
 
 =end comment
 
-DFA::StateMachine - A simple Perl state machine
+DFA::Rules - A simple Perl state machine
 
 =head1 Synopsis
 
-  use DFA::StateMachine;
+  use DFA::Rules;
 
-  my $dfa = DFA::StateMachine->new(
+  my $dfa = DFA::Rules->new(
      ping => {
          enter => sub { print "Entering ping\n" },
          do    => [ sub { print "ping!\n" },
@@ -58,17 +58,17 @@ were getting fed up with the weirdness of L<DFA::Simple|DFA::Simple>, in which
 the only things worse than the documentation are the interface and the
 implementation. 'Nuff said.
 
-DFA::StateMachine uses named states so that it's easy to tell what state
-you're in and what state you want to go to. Each state may define actions that
-are triggered upon entering the state, while in the state, and upon leaving
-the state. They may also define rules for transitioning to other actions, and
+DFA::Rules uses named states so that it's easy to tell what state you're in
+and what state you want to go to. Each state may define actions that are
+triggered upon entering the state, while in the state, and upon leaving the
+state. They may also define rules for transitioning to other actions, and
 these rules may specify the execution of transition-specific actions. All
 actions are defined in terms of anonymous subroutines that should expect the
 DFA object itself to be passed as the sole argument.
 
-DFA::StateMachine objects are implemented as empty hash references, so the
-action subroutines can use it to store data for other states to retreive
-without the possibility of interfering with the state machine itself.
+DFA::Rules objects are implemented as empty hash references, so the action
+subroutines can use it to store data for other states to retreive without the
+possibility of interfering with the state machine itself.
 
 
 =head1 Class Interface
@@ -77,10 +77,10 @@ without the possibility of interfering with the state machine itself.
 
 =head3 new
 
-  my $dfa = DFA::StateMachine->new(%state_table);
+  my $dfa = DFA::Rules->new(%state_table);
 
-Constructs and returns a new DFA::StateMachine object. The parameters define
-the state table, where each key is the name of a state and the following hash
+Constructs and returns a new DFA::Rulesy object. The parameters define the
+state table, where each key is the name of a state and the following hash
 reference defines the state, its actions, transitions, and rules. The first
 state parameter is considered to be the start state. The supported keys in the
 state definition hash references are:
