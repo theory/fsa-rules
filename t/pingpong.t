@@ -6,11 +6,11 @@ use strict;
 #use Test::More tests => 14;
 use Test::More 'no_plan';
 
-BEGIN { use_ok('FSA::Machine') }
+BEGIN { use_ok('FSA::Rules') }
 
 my @msgs;
 
-ok my $fsa = FSA::Machine->new(
+ok my $fsa = FSA::Rules->new(
     ping => {
         on_enter => sub { push @msgs, "Entering ping\n" },
         do       => [ sub { push @msgs, "ping!\n" },

@@ -1,5 +1,5 @@
 --- #YAML:1.0
-name: FSA-Machine
+name: FSA-Rules
 version: 0.07
 author:
   - David Wheeler <david@kineticode.com>
@@ -8,7 +8,7 @@ license: perl
 build_requires:
   Test::Simple: 0.17
 provides:
-  FSA::Machine:
-    file: lib/FSA/Machine.pm
+  FSA::Rules:
+    file: lib/FSA/Rules.pm
     version: 0.07
 generated_by: Module::Build version 0.26

@@ -1,9 +1,9 @@
-package FSA::Machine;
+package FSA::Rules;
 
 # $Id$
 
 use strict;
-$FSA::Machine::VERSION = '0.10';
+$FSA::Rules::VERSION = '0.10';
 
 =begin comment
 
@@ -12,19 +12,19 @@ other than all uppercase.
 
 =head1 NAME
 
-FSA::Machine - Build simple state machines in Perl
+FSA::Rules - Build simple state machines in Perl
 
 =end comment
 
 =head1 Name
 
-FSA::Machine - Build simple state machines in Perl
+FSA::Rules - Build simple state machines in Perl
 
 =head1 Synopsis
 
-  use FSA::Machine;
+  use FSA::Rules;
 
-  my $fsa = FSA::Machine->new(
+  my $fsa = FSA::Rules->new(
      ping => {
          on_enter => sub { print "Entering ping\n" },
          do       => [ sub { print "ping!\n" },
@@ -66,16 +66,16 @@ be checked. It differs from an NFA model in that it offers no back-tracking.
 But in truth, you can use it to build a state machine that adheres to either
 model.
 
-FSA::Machine uses named states so that it's easy to tell what state you're in
+FSA::Rules uses named states so that it's easy to tell what state you're in
 and what state you want to go to. Each state may optionally define actions
 that are triggered upon entering the state, after entering the state, and upon
 exiting the state. They may also define rules for switching to other states,
 and these rules may specify the execution of switch-specific actions. All
 actions are defined in terms of anonymous subroutines that should expect the
-FSA::Machine object itself to be passed as the sole argument.
+FSA::Rules object itself to be passed as the sole argument.
 
-FSA::Machine objects are implemented as empty hash references, so the action
-subroutines can use the FSA::Machine object passed as the sole argument to stash
+FSA::Rules objects are implemented as empty hash references, so the action
+subroutines can use the FSA::Rules object passed as the sole argument to stash
 data for other states to access, without the possibility of interfering with
 the state machine itself.
 
@@ -89,9 +89,9 @@ the state machine itself.
 
 =head3 new
 
-  my $fsa = FSA::Machine->new(@state_table);
+  my $fsa = FSA::Rules->new(@state_table);
 
-Constructs and returns a new FSA::Machine object. The parameters define the
+Constructs and returns a new FSA::Rules object. The parameters define the
 state table, where each key is the name of a state and the following hash
 reference defines the state, its actions and its switch rules. The first state
 parameter is considered to be the start state; call the C<start()> method to
@@ -108,7 +108,7 @@ The supported keys in the state definition hash references are:
 
 Optional. A code reference or array reference of code references. These will
 be executed when entering the state, after any switch actions defined by the
-C<rules> of the previous state. The FSA::Machine object will be passed to each
+C<rules> of the previous state. The FSA::Rules object will be passed to each
 code reference as the sole argument.
 
 =item do
@@ -118,7 +118,7 @@ code reference as the sole argument.
 
 Optional. A code reference or array reference of code references. These are
 the actions to be taken while in the state, and will execute after any
-C<on_enter> actions. The FSA::Machine object will be passed to each code
+C<on_enter> actions. The FSA::Rules object will be passed to each code
 reference as the sole argument.
 
 =item on_exit
@@ -128,7 +128,7 @@ reference as the sole argument.
 
 Optional. A code reference or array reference of code references. These will
 be executed when exiting the state, before any switch actions (defined by
-C<rules>). The FSA::Machine object will be passed to each code reference as the
+C<rules>). The FSA::Rules object will be passed to each code reference as the
 sole argument.
 
 =item rules
@@ -151,7 +151,7 @@ likely to evaluate to false.
 A rule may take the form of a code reference or an array reference of code
 references. The code reference (or first code reference in the array) must
 return a true value to trigger the switch to the new state, and false not to
-switch to the new state. When executed, it will be passed the FSA::Machine
+switch to the new state. When executed, it will be passed the FSA::Rules
 object, along with any other arguments passed to C<try_switch()> or
 C<switch()>, the methods that execute the rule code references. These
 arguments may be inputs that are specifically tested to determine whether to
@@ -162,7 +162,7 @@ are they?).
 
 Any other code references in the array will be executed during the switch,
 after the C<on_exit> actions have been executed in the current state, but
-before the C<on_enter> actions execute in the new state. The FSA::Machine object
+before the C<on_enter> actions execute in the new state. The FSA::Rules object
 will be passed in as the sole argument.
 
 A rule may also be simply specify scalar variable, in which case that value
@@ -422,14 +422,14 @@ sub switch {
 Get or set a value to indicate whether the engine is done running. Or set it
 to a code reference to have that code reference called each time C<done()> is
 called without arguments and have I<its> return value returned. A code
-reference should expect the FSA::Machine object passed in as its only argument.
+reference should expect the FSA::Rules object passed in as its only argument.
 
 This method can be useful for checking to see if your state engine is done
 running, and calling C<switch()> when it isn't. States can set it to a true
 value when they consider processing complete, or you can use a code reference
 that evaluates "done-ness" itself. Something like this:
 
-  my $fsa = FSA::Machine->new(
+  my $fsa = FSA::Rules->new(
       foo => {
           do    => { $_[0]->machine->done(1) if ++$_[0]->{count} >= 5 },
           rules => [ do => 1 ],
@@ -438,7 +438,7 @@ that evaluates "done-ness" itself. Something like this:
 
 Or this:
 
-  my $fsa = FSA::Machine->new(
+  my $fsa = FSA::Rules->new(
       foo => {
           do    => { ++shift->{count} },
           rules => [ do => 1 ],
@@ -473,7 +473,7 @@ sub done {
 
   $fsa->run;
 
-This method starts the FSA::Machine engine (if it hasn't already been set to a
+This method starts the FSA::Rules engine (if it hasn't already been set to a
 state) by calling C<start()>, and then calls the C<switch()> method repeatedly
 until C<done()> returns a true value. In other words, it's a convenient
 shortcut for:
@@ -485,7 +485,7 @@ But be careful when calling this method. If you have no failed switches
 between states and the states never set the C<done> attribute to a true value,
 then this method will never die or return, but run forever. So plan carefully!
 
-Returns the FSA::Machine object.
+Returns the FSA::Rules object.
 
 =cut
 
@@ -504,9 +504,9 @@ sub run {
 
 The C<reset()> method will clear the stack and notes and set the current state
 to C<undef>. Use this method when you want to reuse your state machine.
-Returns the DFA::Machine object.
+Returns the DFA::Rules object.
 
-  my $fsa = FSA::Machine->new(@state_machine);
+  my $fsa = FSA::Rules->new(@state_machine);
   $fsa->done(sub {$done});
   $fsa->run;
   # do a bunch of stuff
@@ -532,7 +532,7 @@ sub reset {
   my $notes = $fsa->notes;
 
 The C<notes()> method provides a place to store arbitrary data, just in
-case you're not comfortable using the FSA::Machine object itself, which
+case you're not comfortable using the FSA::Rules object itself, which
 is an empty hash. Any data stored here persists for the lifetime of the
 state machine or until C<reset()> is called.
 
@@ -543,7 +543,7 @@ C<< $fsa->notes->($key) >> returns a previously stored value.
 C<< $fsa->notes >>, called without arguments, returns a reference to the
 entire hash of key-value pairs.
 
-Returns the FSA::Machine object when setting a note value.
+Returns the FSA::Rules object when setting a note value.
 
 =cut
 
@@ -702,7 +702,7 @@ sub name {
 
   my $machine = $state->machine;
 
-Returns the FSA::Machine object for which the state is defined.
+Returns the FSA::Rules object for which the state is defined.
 
 =cut
 
@@ -712,7 +712,7 @@ sub machine { return $states{shift()}->{machine} }
 
 =head3 result
 
-  my $fsa = FSA::Machine->new(
+  my $fsa = FSA::Rules->new(
     # ...
     some_state => {
         do => sub {
@@ -748,7 +748,7 @@ sub result {
 
 =head3 message
 
-  my $fsa = FSA::Machine->new(
+  my $fsa = FSA::Rules->new(
     # ...
     some_state => {
         do => sub {
@@ -788,7 +788,7 @@ sub message {
 
 =head3 enter
 
-Executes all of the C<on_enter> actions. Called by FSA::Machine's C<state()>
+Executes all of the C<on_enter> actions. Called by FSA::Rules's C<state()>
 method, and not intended to be called directly.
 
 =cut
@@ -804,7 +804,7 @@ sub enter {
 
 =head3 do
 
-Executes all of the C<do>. Called by FSA::Machine's C<state()> method, and not
+Executes all of the C<do>. Called by FSA::Rules's C<state()> method, and not
 intended to be called directly.
 
 =cut
@@ -820,7 +820,7 @@ sub do {
 
 =head3 exit
 
-Executes all of the C<on_exit> actions. Called by FSA::Machine's C<state()>
+Executes all of the C<on_exit> actions. Called by FSA::Rules's C<state()>
 method, and not intended to be called directly.
 
 =cut

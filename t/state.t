@@ -8,7 +8,7 @@ use Test::More 'no_plan';
 
 my $CLASS;
 BEGIN { 
-    $CLASS = 'FSA::Machine';
+    $CLASS = 'FSA::Rules';
     use_ok($CLASS) or die;
 }
 

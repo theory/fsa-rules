@@ -25,4 +25,4 @@
 \b\.#
 
 # Avoid build files.
-^FSA-Machine
+^FSA-Rules
