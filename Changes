@@ -1,4 +1,6 @@
 Revision history for Perl extension Widget::Meta.
 
-0.01  
-      - Initial public release.
+0.02
+
+0.01  2004-12-15T07:12:22
+      - Initial public release (to module-authors@perl.org only).

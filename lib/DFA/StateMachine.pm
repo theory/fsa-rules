@@ -3,7 +3,7 @@ package DFA::StateMachine;
 # $Id$
 
 use strict;
-$DFA::StateMachine::VERSION = '0.01';
+$DFA::StateMachine::VERSION = '0.02';
 
 =head1 Name
 
@@ -167,7 +167,8 @@ sub new {
         $states{$self}->{table}{$state} = $def;
     }
 
-    # Setup goto rules.
+    # Setup goto rules. We process the table a second time to catch invalid
+    # references.
     while (my ($key, $def) = each %{$states{$self}->{table}}) {
         if (my $goto_spec = $def->{goto}) {
             my @gotos;
