@@ -1,13 +1,12 @@
 Revision history for Perl extension FSA::Rules.
 
-0.08  - Added state methods to allow easy caching and retrieval of state
-        results and messages.  Also added stacktrace methods for easy 
-        debugging.
-
-0.07
+0.07  2004-12-16T22:23:43
       - Updated the synopsis to no longer document non-existant methods.
       - Added notes about DFA vs. NFA state engines and how FSA::Rules
         compares to the two models.
+      - Added state methods to allow easy caching and retrieval of state
+        results and messages. Also added stacktrace methods for easy
+        debugging.
 
 0.06  2004-12-16T02:05:01
       - Added a C<stack()> method to return an arrayref of state 
