@@ -100,7 +100,7 @@ digraph test {
 }
 END_TEXT
 my $graph = $fsa->graph(
-    { text_wrap => 15 },
+    { text_wrap => 15, wrap_labels => 1 },
     bgcolor => 'magenta',
     node    => {shape => 'circle'},
 );

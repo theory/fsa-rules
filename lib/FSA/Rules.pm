@@ -924,7 +924,7 @@ C<graph()>. The supported parameters are:
 =item text_wrap
 
 The text wrap length for graphs.  There's a lot of text on the graph.  This
-property will automatically wrap all text to the given length using the
+property will set the wrap length for all text to the given length using the
 C<Text::Wrap> module.
 
 Each edge on the graph has a "label." If the rules for a given state were
@@ -932,6 +932,22 @@ specified as hash references in the call to C<new()>, the C<message> key will
 used as the label; otherwise the label is blank. When used as labels, messages
 are wrapped in order to make labels fit better. The default maximum line length
 is 25. However, you may set a different wrap length using this parameter.
+
+B<Note:> By default, text wrapping for graphs is disabled.  You must
+specifically state which text you want wrapped with either the C<wrap_nodes> or
+C<wrap_labels> parameters.
+
+=item wrap_nodes
+
+This parameter, if set to true, will wrap the node text.
+
+Due to an obscure bug that has been difficult to track down, this sometimes
+causes graphs to not display properly.  Use with caution.
+
+=item wrap_labels
+
+This parameter, if set to true, will wrap the label text.  This property
+is always safe to use.
 
 =back
 
@@ -952,12 +968,18 @@ sub graph {
     my $machine = clone($machines{$self}->{graph});
     my $graph = GraphViz->new(@_);
     while (my ($state, $definition) = splice @$machine => 0, 2) {
-        $graph->add_node(wrap('','',$state));
+        my $node = $params->{wrap_nodes} 
+            ? wrap('','',$state) 
+            : $state;
+        $graph->add_node($node);
         next unless exists $definition->{rules};
         while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
             my @edge = ($state => $rule);
             if (ref $condition eq 'HASH' && exists $condition->{message}) {
-                push @edge => 'label', wrap('','',$condition->{message});
+                my $label = $params->{wrap_labels}
+                    ? wrap('','',$condition->{message})
+                    : $condition->{message};
+                push @edge => 'label', $label;
             }
             $graph->add_edge(@edge, decorate => 1);
         }
