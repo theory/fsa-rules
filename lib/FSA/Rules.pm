@@ -57,11 +57,13 @@ FSA::Rules - A simple Perl state machine
 =head1 Description
 
 This class implements a simple FSA state machine. As a simple implementation
-of a powerful concept, it differs slightly from the ideal FSA model in that it
+of a powerful concept, it differs slightly from an ideal DFA model in that it
 does not enforce a single possible switch from one state to another. Rather,
 it short circuits the evaluation of the rules for such switches, so that the
 first rule to return a true value will trigger its switch and no other
-switch rules will be checked.
+switch rules will be checked. It differs from an NFA model in that it offers
+no back-tracking. But in truth, you can use it to build a state machine that
+adheres to either model.
 
 FSA::Rules uses named states so that it's easy to tell what state you're in
 and what state you want to go to. Each state may optionally define actions
@@ -69,7 +71,7 @@ that are triggered upon entering the state, after entering the state, and upon
 exiting the state. They may also define rules for switching to other states,
 and these rules may specify the execution of switch-specific actions. All
 actions are defined in terms of anonymous subroutines that should expect the
-FSA object itself to be passed as the sole argument.
+FSA::Rules object itself to be passed as the sole argument.
 
 FSA::Rules objects are implemented as empty hash references, so the action
 subroutines can use the FSA::Rules object passed as the sole argument to store
@@ -452,9 +454,9 @@ sub done {
 
   $fsa->run;
 
-This method starts the FSA engine (if it hasn't already been set to a state)
-and then calls the C<switch()> method repeatedly until C<done()> returns a
-true value. In other words, it's a convenient shortcut for:
+This method starts the FSA::Rules engine (if it hasn't already been set to a
+state) and then calls the C<switch()> method repeatedly until C<done()>
+returns a true value. In other words, it's a convenient shortcut for:
 
     $fsa->start unless $states{$self}->{current};
     $fsa->switch until $self->done;
@@ -463,7 +465,7 @@ But be careful when calling this method. If you have no failed switches
 between states and the states never set the C<done> attribute to a true value,
 then this method will never die or return, but run forever. So plan carefully!
 
-Returns the FSA object.
+Returns the FSA::Rules object.
 
 =cut
 
