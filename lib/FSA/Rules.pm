@@ -1020,9 +1020,21 @@ sub _rules {
 1;
 __END__
 
+=head1 To Do
+
+=over
+
+=item Add state_class attribute to new() so people can subclass.
+
+=item Add new() method to FSA::Class (to ease subclassing).
+
+=item Factor FSA::Class into a separate file.
+
+=back
+
 =head1 Bugs
 
-Please send bug reports to <bug-fsa-statemachine@rt.cpan.org>.
+Please send bug reports to <bug-fsa-rules@rt.cpan.org>.
 
 =head1 Author
 
