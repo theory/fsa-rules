@@ -1,5 +1,7 @@
 Revision history for Perl extension FSA::Rules.
 
+0.03
+
 0.02  2004-12-15T22:01:58
       - Changed name to FSA::Rules. Thanks to the module-authors list for the
         feedback!
