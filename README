@@ -150,6 +150,27 @@ Instance Interface
     state, and then executes the "on_enter" and "do" actions of the new
     state. Returns the FSA::Rules object when setting the state.
 
+   stack
+      my $stack = $fsa->stack;
+
+    Returns an array reference of all states the machine has been in
+    beginning with the first state and ending with the current state. No
+    state name will be added to the stack until the machine has been in that
+    state. This method is useful for debugging.
+
+   reset
+      $fsa->reset;
+
+    The "reset()" method will clear the stack and set the current state to
+    "undef". Use this method when you want to reuse your state machine.
+    Returns the DFA::Rules object.
+
+      my $fsa = FSA::Rules->new(@state_machine);
+      $fsa->done(sub {$done});
+      $fsa->run;
+      # do a bunch of stuff
+      $fsa->reset->run;
+
    try_switch
       my $state = $fsa->try_switch;
       $state = $fsa->try_switch(@inputs);

@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name: FSA-Rules
-version: 0.05
+version: 0.06
 author:
   - David Wheeler <david@kineticode.com>
 abstract: A simple Perl state machine
@@ -10,5 +10,5 @@ build_requires:
 provides:
   FSA::Rules:
     file: lib/FSA/Rules.pm
-    version: 0.05
+    version: 0.06
 generated_by: Module::Build version 0.26
