@@ -540,7 +540,6 @@ sub try_switch {
         next unless $code->($state, @_);
         $fsa->{exec} = $rule->{exec};
         $next = $self->state($rule->{state});
-        return $next unless @rules && $self->strict;
         last;
     }
 
