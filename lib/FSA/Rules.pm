@@ -51,7 +51,8 @@ FSA::Rules - A simple Perl state machine
   );
 
   $fsa->start;
-  $fsa->check while $fsa->{count} <= 21;
+  $fsa->done(sub { shift->{count} <= 21 });
+  $fsa->switch until $fsa->done;
 
 =head1 Description
 

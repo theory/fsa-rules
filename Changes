@@ -1,5 +1,8 @@
 Revision history for Perl extension FSA::Rules.
 
+0.07
+      - Updated the synopsis to no longer document non-existant methods.
+
 0.06  2004-12-16T02:05:01
       - Added a C<stack()> method to return an arrayref of state 
         transformations. Implementation by Curtis Poe.
