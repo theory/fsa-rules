@@ -60,10 +60,10 @@ powerful concept, it differs slightly from an ideal DFA model in that it does
 not enforce a single possible switch from one state to another. Rather, it
 short circuits the evaluation of the rules for such switches, so that the
 first rule to return a true value will trigger its switch and no other switch
-rules will be checked. (But see the C<strict> parameter to C<new()>.) It
-differs from an NFA model in that it offers no back-tracking. But in truth,
-you can use it to build a state machine that adheres to either model--hence
-the more generic FSA moniker.
+rules will be checked. (But see the C<strict> attribute and parameter to
+C<new()>.) It differs from an NFA model in that it offers no back-tracking.
+But in truth, you can use it to build a state machine that adheres to either
+model--hence the more generic FSA moniker.
 
 FSA::Rules uses named states so that it's easy to tell what state you're in
 and what state you want to go to. Each state may optionally define actions
@@ -113,6 +113,10 @@ Causes the C<start()> method to be called on the machine before returning it.
 =item done
 
 A value to which to set the C<done> attribute.
+
+=item strict
+
+A value to which to set the C<strict> attribute.
 
 =back
 
@@ -275,6 +279,7 @@ sub new {
     # Handle any parameters.
     $self->start if $params->{start};
     $self->done($params->{done}) if exists $params->{done};
+    $self->strict($params->{strict}) if exists $params->{strict};
     return $self;
 }
 
@@ -407,11 +412,21 @@ sub states {
   $state = $fsa->try_switch(@inputs);
 
 Checks the switch rules of the current state and switches to the first new
-state for which a rule returns a true value. All arguments passed to
-C<try_switch> will be passed to the switch rule code reference as inputs. If
-the switch rule evaluates to true and there are additional switch actions,
-these will be executed after the C<on_exit> actions of the current state (if
-there is one) but before the C<on_enter> actions of the new state.
+state for which a rule returns a true value. The evaluation of switch rules
+short-circuits to switch to the first state for which a rule evaluates to a
+true value unless the C<strict> attribute is set to a true value. If <strict>
+is set to a true value, I<all> rules will be evaluated, and if more than one
+returns a true statement, an exception will be thrown. This approach guarntees
+that every attempt to switch from one state to another will have one and only
+one possible destination state to which to switch, thus satisfying the DFA
+pattern.
+
+All arguments passed to C<try_switch> will be passed to the switch rule code
+references as inputs. If a switch rule evaluates to true and there are
+additional switch actions for that rule, these actions will be executed after
+the C<on_exit> actions of the current state (if there is one) but before the
+C<on_enter> actions of the new state. They will be passed the current state
+object and the new state object as arguments.
 
 Returns the FSA::State object representing the state to which it switched and
 C<undef> if it cannot switch to another state.
@@ -422,13 +437,28 @@ sub try_switch {
     my $self = shift;
     my $fsa = $machines{$self};
     my $state = $fsa->{current};
-    # XXX Factor this out to the state class to handle?
-    for my $rule ($state->_rules) {
+    # XXX Factor this out to the state class to evaluate the rules?
+    my @rules = $state->_rules;
+    my $rule;
+    while ($rule = shift @rules) {
         my $code = $rule->{rule};
         next unless $code->($state, @_);
         $fsa->{exec} = $rule->{exec};
-        return $self->state($rule->{state});
+        return $self->state($rule->{state}) unless @rules && $self->strict;
+        last;
     }
+
+    if (@rules && $self->strict) {
+        if (my @new = grep { my $c = $_->{rule}; $c->($state, @_) } @rules) {
+            require Carp;
+            Carp::croak(
+                'Attempt to switch from state "', $state->name,
+                '" improperly found multiple possible destination states: "',
+                join('", "', map { $_->{state}->name } $rule, @new), '"'
+            );
+        }
+    }
+
     return undef;
 }
 
@@ -440,8 +470,7 @@ sub try_switch {
   print "No can do" if $@;
 
 The fatal form of C<try_switch()>. This method attempts to switch states and
-returns the name of the new state on success and throws an exception on
-failure.
+returns the FSA::State object on success and throws an exception on failure.
 
 =cut
 
@@ -515,6 +544,28 @@ sub done {
     }
     my $code = $fsa->{done};
     return $code->($self);
+}
+
+##############################################################################
+
+=head3 strict
+
+  my $strict = $fsa->strict;
+  $fsa->strict(1);
+
+Get or set the C<strict> attribute of the state machine. When set to true, the
+strict attribute disallows the short-circuiting of rules and allows a transfer
+if only one rule returns a true value. If more than one rule evaluates to
+true, an exception will be thrown.
+
+=cut
+
+sub strict {
+    my $self = shift;
+    my $fsa = $machines{$self};
+    return $fsa->{strict} unless @_;
+    $fsa->{strict} = shift;
+    return $self;
 }
 
 ##############################################################################
@@ -973,19 +1024,7 @@ __END__
 
 =over
 
-=item Add optional parameters to new(). Paramters include:
-
-=over
-
-=item done
-
-=item start_state
-
-=item strict
-
-=item error_handler
-
-=item start
+=item Add strict attribute.
 
 =back
 

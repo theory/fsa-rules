@@ -28,6 +28,9 @@ is $fsa->state, $state, "... The current state should be 'foo'";
 is $fsa->done, undef, "... It should not be done";
 is $fsa->done(1), $fsa, "... But we can set doneness";
 is $fsa->done, 1, "... And then retreive that value";
+is $fsa->strict, undef, "... It should not be strict";
+is $fsa->strict(1), $fsa, "... But we can set strict";
+is $fsa->strict, 1, "... And now strict is turned on";
 
 # Try a bogus state.
 eval { $fsa->state('bogus') };
@@ -493,8 +496,9 @@ is_deeply $fsa->notes, {}, "... and with no arguments, we should get an empty ha
 # Try parameters to new().
 ok $fsa = $CLASS->new(
     {
-        done  => 'done',
-        start => 1,
+        done   => 'done',
+        start  => 1,
+        strict => 1,
     },
     foo => {},
     bar => {},
@@ -503,4 +507,20 @@ ok $fsa = $CLASS->new(
 is $fsa->state->name, 'foo',
   "... And the engine should be started with the 'bar' state";
 is $fsa->done, 'done', '... And done should be set to "done"';
+is $fsa->strict, 1, "... And strict should be turned on";
 
+# Try strict.
+ok $fsa = $CLASS->new(
+    { strict => 1, start => 1 },
+    foo => { rules => [ bar => 1 ] },
+    bar => { rules => [ foo => 1, bar => 1 ] },
+), "Constuct with strict enabled and multiple possible paths";
+
+is $fsa->state->name, 'foo', "... The engine should be started";
+is $fsa->strict, 1, "... Strict should be enabled";
+is $fsa->switch->name, 'bar', "... The switch to 'bar' should succeed";
+eval { $fsa->try_switch };
+ok $err = $@, "... Try to switch from bar should throw an exception";
+like $err,
+  qr/Attempt to switch from state "bar" improperly found multiple possible destination states: "foo", "bar"/,
+  "... And the error message should be appropriate (and verbose)";

@@ -23,9 +23,13 @@ Revision history for Perl extension FSA::Rules.
       - The start() method will now throw an exception if the machine is
         already running. Call reset() before calling start on a running
         machine.
+      - Added "strict" attribute to prevent rules from short-circuiting
+        and cause an exception to be thrown if more than one rule returns
+        a true value during a call to try_switch(). Suggested by Curtis
+        Poe.
       - Added optional parameter hash reference as first argument to new().
         It can force the machine to be started before being returned, or
-        can set the "done" attribute.
+        can set the "done" or "strict" attributes.
 
 0.07  2004-12-16T22:23:43
       - Updated the synopsis to no longer document non-existant methods.
