@@ -2,6 +2,8 @@ Revision history for Perl extension FSA::Rules.
 
 0.07
       - Updated the synopsis to no longer document non-existant methods.
+      - Added notes about DFA vs. NFA state engines and how FSA::Rules
+        compares to the two models.
 
 0.06  2004-12-16T02:05:01
       - Added a C<stack()> method to return an arrayref of state 
