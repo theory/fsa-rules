@@ -465,12 +465,41 @@ sub graph {
         while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
             my @edge = ($state => $rule);
             if (ref $condition eq 'HASH' && exists $condition->{message}) {
+                my $wrap = $self->label_wrap;
+                $condition->{message} =~ s/(.{0,$wrap})\s+/$1\n/g;
                 push @edge => 'label', $condition->{message};
             }
             $graph->add_edge(@edge);
         }
     }
     return $graph;
+}
+
+##############################################################################
+
+=head3 label_wrap
+
+  $fsa->label_wrap(15);
+
+This methods sets the label wrap length for graphs.  Each edge on the graph 
+has a "label."  If the rules are specified with a hashref, the C<message> key
+is used as the label, otherwise the label is blank.  In order to make them fit
+better, messages are wrapped when used as labels. The default max line length
+is 25.  However, you may set a different wrap length using this method.  If
+called without arguments, returns the current wrap length.
+
+=cut
+
+my $wrap = 25;
+sub label_wrap {
+    my $self = shift;
+    return $wrap unless @_;
+    my $new_wrap = shift;
+    unless ($new_wrap =~ /^[[:digit:]]+/ and $new_wrap > 0) {
+        $self->_croak("The argument to label_wrap() must be a positive integer.");
+    }
+    $wrap = $new_wrap;
+    return $self;
 }
 
 ##############################################################################

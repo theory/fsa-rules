@@ -89,14 +89,14 @@ $expected = <<'END_TEXT';
 digraph test {
         graph [bgcolor=magenta];
         node [label="\N", shape=circle];
-        graph [bb="0,0,235,262"];
-        ping [label=ping, pos="204,233", width="0.81", height="0.81"];
-        end [label=end, pos="76,26", width="0.69", height="0.71"];
-        pong [label=pong, pos="204,135", width="0.86", height="0.86"];
-        ping -> end [label="Enough Iterations (ping)", pos="e,59,45 175,226 130,215 44,191 27,166 3,131 30,83 53,53", lp="99,135"];
-        ping -> pong [pos="e,198,166 198,205 197,196 197,186 197,176"];
-        pong -> end [label="Enough Iterations", pos="e,93,44 178,117 163,106 144,92 136,86 124,75 111,63 100,52", lp="190,78"];
-        pong -> ping [pos="e,210,205 210,166 211,175 211,185 211,195"];
+        graph [bb="0,0,197,278"];
+        ping [label=ping, pos="166,249", width="0.81", height="0.81"];
+        end [label=end, pos="66,26", width="0.69", height="0.71"];
+        pong [label=pong, pos="166,151", width="0.86", height="0.86"];
+        ping -> end [label="Enough Iterations\n(ping)", pos="e,51,47 137,244 104,237 51,220 27,182 2,143 26,88 46,56", lp="80,151"];
+        ping -> pong [pos="e,160,182 160,221 159,212 159,202 159,192"];
+        pong -> end [label="Enough\nIterations", pos="e,82,46 146,127 129,106 105,76 88,54", lp="153,86"];
+        pong -> ping [pos="e,172,221 172,182 173,191 173,201 173,211"];
 }
 END_TEXT
 my $graph = $fsa->graph(
