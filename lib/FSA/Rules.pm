@@ -145,9 +145,16 @@ most likely to evaluate to true before those less likely to evaluate to true.
 A rule may take the form of a code reference or an array reference of code
 references. The code reference or first code reference in the array must
 return true to trigger the switch to the new state, and false not to switch to
-the new state. Any other code references in the array will be executed during
-the switch, after the C<on_exit> actions have been executed in the current
-state, but before the C<on_enter> actions execute in the new state.
+the new state. When executed, it will be passed the FSA::Rules object, along
+with any other arguments passed to C<try_switch()> or C<switch()>. These may
+be inputs that are specifically tested to determine whether to switch states.
+To be polite, the rules should not transform the passed values if they're
+returning false, as other rules may need to evaluate them.
+
+Any other code references in the array will be executed during the switch,
+after the C<on_exit> actions have been executed in the current state, but
+before the C<on_enter> actions execute in the new state. The FSA::Rules object
+will be passed in as the sole argument.
 
 A rule may also be simply specify scalar variable, in which case that value
 will be used to determine whether the rule evaluates to a true or false value.
@@ -286,11 +293,15 @@ sub state {
 =head3 try_switch
 
   my $state = $fsa->try_switch;
+  $state = $fsa->try_switch(@inputs);
 
 Checks the switch rules of the current state and switches to the first new
-state for which a rule returns a true value. If the switch rule has switch
-actions, they will be executed after the C<on_exit> actions of the current
-state (if there is one) but before the C<on_enter> actions of the new state.
+state for which a rule returns a true value. All arguments passed to
+C<try_switch> will be passed to the switch rule code reference as inputs. If
+the switch rule evaluates to true and there are additional switch actions,
+these will be executed after the C<on_exit> actions of the current state (if
+there is one) but before the C<on_enter> actions of the new state.
+
 Returns the name of the state to which it switched and C<undef> if it cannot
 switch to another state.
 
@@ -301,7 +312,7 @@ sub try_switch {
     my $def = $states{$self}->{table}{$states{$self}->{current}};
     for my $rule (@{$def->{rules}}) {
         my $code = $rule->{rule};
-        next unless $code->($self);
+        next unless $code->($self, @_);
         $states{$self}->{exec} = $rule->{exec};
         $self->state($rule->{state});
         return $rule->{state};
@@ -313,7 +324,7 @@ sub try_switch {
 
 =head3 switch
 
-  my $state = eval { $fsa->switch };
+  my $state = eval { $fsa->switch(@inputs) };
   print "No can do" if $@;
 
 The fatal form of C<try_switch()>. This method attempts to switch states and
@@ -341,7 +352,7 @@ sub switch {
   $fsa->done( sub {...} );
 
 Get or set a value to indicate whether the engine is done running. Or set it
-to a code reference to have that code refernce called each time C<done()> is
+to a code reference to have that code reference called each time C<done()> is
 called without arguments and have its its return value returned. A code
 reference should expect the FSA::Rules object passed in as its only argument.
 
@@ -396,12 +407,12 @@ sub done {
 
 This method starts the FSA engine (if it hasn't already been set to a state)
 and then calls the C<switch()> method repeatedly until C<done()> returns a
-true value. IOW, it's a convenient shortcut for:
+true value. In other words, it's a convenient shortcut for:
 
     $fsa->start unless $states{$self}->{current};
     $fsa->switch until $self->done;
 
-But be careful when calling this method. If you have no failed swtiches
+But be careful when calling this method. If you have no failed switches
 between states and the states never set the C<done> attribute to a true value,
 then this method will never die or return, but run forever. So plan carefully!
 

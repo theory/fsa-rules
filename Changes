@@ -1,6 +1,9 @@
 Revision history for Perl extension FSA::Rules.
 
-0.05
+0.05  2004-12-16T00:50:49
+      - Changed C<try_switch()> to pass any arguments to each rule checking
+        code reference. These can be used as inputs in a classic DFA-style
+        rule table. Suggested by Paul Hoffman.
 
 0.04  2004-12-16T00:19:41
       - Changed "done()" to evaluate a code reference if a code reference is

@@ -114,10 +114,17 @@ Class Interface
         A rule may take the form of a code reference or an array reference
         of code references. The code reference or first code reference in
         the array must return true to trigger the switch to the new state,
-        and false not to switch to the new state. Any other code references
-        in the array will be executed during the switch, after the "on_exit"
-        actions have been executed in the current state, but before the
-        "on_enter" actions execute in the new state.
+        and false not to switch to the new state. When executed, it will be
+        passed the FSA::Rules object, along with any other arguments passed
+        to "try_switch()" or "switch()". These may be inputs that are
+        specifically tested to determine whether to switch states. To be
+        polite, the rules should not transform the passed values if they're
+        returning false, as other rules may need to evaluate them.
+
+        Any other code references in the array will be executed during the
+        switch, after the "on_exit" actions have been executed in the
+        current state, but before the "on_enter" actions execute in the new
+        state. The FSA::Rules object will be passed in as the sole argument.
 
         A rule may also be simply specify scalar variable, in which case
         that value will be used to determine whether the rule evaluates to a
@@ -145,16 +152,21 @@ Instance Interface
 
    try_switch
       my $state = $fsa->try_switch;
+      $state = $fsa->try_switch(@inputs);
 
     Checks the switch rules of the current state and switches to the first
-    new state for which a rule returns a true value. If the switch rule has
-    switch actions, they will be executed after the "on_exit" actions of the
+    new state for which a rule returns a true value. All arguments passed to
+    "try_switch" will be passed to the switch rule code reference as inputs.
+    If the switch rule evaluates to true and there are additional switch
+    actions, these will be executed after the "on_exit" actions of the
     current state (if there is one) but before the "on_enter" actions of the
-    new state. Returns the name of the state to which it switched and
-    "undef" if it cannot switch to another state.
+    new state.
+
+    Returns the name of the state to which it switched and "undef" if it
+    cannot switch to another state.
 
    switch
-      my $state = eval { $fsa->switch };
+      my $state = eval { $fsa->switch(@inputs) };
       print "No can do" if $@;
 
     The fatal form of "try_switch()". This method attempts to switch states
@@ -167,7 +179,7 @@ Instance Interface
       $fsa->done( sub {...} );
 
     Get or set a value to indicate whether the engine is done running. Or
-    set it to a code reference to have that code refernce called each time
+    set it to a code reference to have that code reference called each time
     "done()" is called without arguments and have its its return value
     returned. A code reference should expect the FSA::Rules object passed in
     as its only argument.
@@ -207,12 +219,12 @@ Instance Interface
 
     This method starts the FSA engine (if it hasn't already been set to a
     state) and then calls the "switch()" method repeatedly until "done()"
-    returns a true value. IOW, it's a convenient shortcut for:
+    returns a true value. In other words, it's a convenient shortcut for:
 
         $fsa->start unless $states{$self}->{current};
         $fsa->switch until $self->done;
 
-    But be careful when calling this method. If you have no failed swtiches
+    But be careful when calling this method. If you have no failed switches
     between states and the states never set the "done" attribute to a true
     value, then this method will never die or return, but run forever. So
     plan carefully!
