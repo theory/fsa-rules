@@ -283,14 +283,14 @@ sub new {
                 my $exec = ref $rules eq 'ARRAY' ? $rules : [$rules];
                 my $rule = shift @$exec;
                 my $message;
-                my $ref = ref $rule;
-                if ($ref eq 'HASH') {
+                if (ref $rule eq 'HASH') {
                     $self->_croak(qq{In rule "$state", state "$key":  you must supply a rule.})
                       unless exists $rule->{rule};
                     $exec    = $rule->{action}  if exists $rule->{action};
                     $message = $rule->{message} if exists $rule->{message};
                     $rule    = $rule->{rule};
-                } elsif ($ref ne 'CODE') {
+                }
+                if (ref $rule ne 'CODE' ) {
                     my $val = $rule;
                     $rule = sub { $val };
                 }
@@ -524,7 +524,7 @@ sub states {
     my $self = shift;
     my $fsa = $machines{$self};
     return wantarray ? @{$fsa->{ord}} : $fsa->{ord} unless @_;
-    return $fsa->{table}{shift()} unless @_ > 1;
+    return $fsa->{table}{+shift} unless @_ > 1;
     return wantarray ? @{$fsa->{table}}{@_} : [ @{$fsa->{table}}{@_} ];
 
 }

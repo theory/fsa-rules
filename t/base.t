@@ -4,7 +4,7 @@
 
 use strict;
 #use Test::More 'no_plan';
-use Test::More tests => 299;
+use Test::More tests => 300;
 
 my $CLASS;
 BEGIN {
@@ -623,3 +623,20 @@ ok $fsa = $CLASS->new( { state_class => 'FSA::Stately'}, foo => {} ),
 ok $foo = $fsa->states('foo'), 'Get "foo" state';
 isa_ok $foo, 'FSA::Stately';
 isa_ok $foo, 'FSA::State';
+
+# test that messages get set even if a state dies
+$fsa = $CLASS->new(
+    alpha => { 
+        rules => [
+            omega => {
+                rule    => 1,
+                message => 'If I heard a voice from heaven ...'
+            }
+        ],
+    },
+    omega => { do => sub { die } },
+);
+$fsa->start;
+eval {$fsa->switch} until $fsa->at('omega'); 
+is $fsa->states('alpha')->message, 'If I heard a voice from heaven ...',
+  '... messages should be set even if the final state dies';
