@@ -4,33 +4,27 @@ Name
 Synopsis
       my $fsa = FSA::Rules->new(
          ping => {
-             on_enter => sub { print "Entering ping\n" },
-             do       => [ sub { print "ping!\n" },
-                           sub { shift->notes(goto => 'pong'); },
-                           sub { shift->machine->{count}++ }
-             ],
-             on_exit  => sub { print "Exiting 'ping'\n" },
-             rules    => [
-                 pong => sub { shift->notes('goto') eq 'pong' },
+             do => sub {
+                 print "ping!\n";
+                 my $state = shift;
+                 $state->result('pong');
+                 $state->machine->{count}++;
+             },
+             rules => [
+                 game_over => sub { shift->machine->{count} >= 20 },
+                 pong      => sub { shift->result eq 'pong' },
              ],
          },
 
          pong => {
-             on_enter => [ sub { print "Entering pong\n" },
-                           sub { shift->notes(goto => 'ping') } ],
-             do       => sub { print "pong!\n"; },
-             on_exit  => sub { print "Exiting 'pong'\n" },
-             rules    => [
-                 ping => [ sub { shift->notes('goto') eq 'ping' },
-                           sub { print "pong to ping\n" },
-                 ]
-             ],
+             do => sub { print "pong!\n" },
+             rules => [ ping => 1, ], # always goes back to pong
          },
+         game_over => { do => sub { print "Game Over" } }
       );
 
       $fsa->start;
-      $fsa->done(sub { shift->{count} >= 21 });
-      $fsa->switch until $fsa->done;
+      $fsa->switch until $fsa->at('game_over');
 
 Description
     This class implements a simple state machine pattern, allowing you to
@@ -88,6 +82,11 @@ Class Interface
     strict
         A value to which to set the "strict" attribute.
 
+    state_class
+        The name of the class to use for state objects. Defaults to
+        "FSA::State". Use this parameter if you want to use a subclass of
+        FSA::State.
+
     All other parameters define the state table, where each key is the name
     of a state and the following hash reference defines the state, its
     actions and its switch rules. These state specifications will be
@@ -128,50 +127,99 @@ Class Interface
         code reference as the sole argument.
 
     rules
-          rules => [
-              state1 => \&state1_rule,
-              state2 => [ \&state2_rule, \&action ],
-              state3 => 1,
-              state4 => [ 1, \&action ],
-          ]
-
         Optional. The rules for switching from the state to other states.
         This is an array reference but shaped like a hash. The keys are the
         names of the states to consider moving to, while the values are the
         rules for switching to that state. The rules will be executed in the
         order specified in the array reference, and *they will
-        short-circuit.* So for the sake of efficiency it's worthwhile to
-        specify the switch rules most likely to evaluate to true before
-        those more likely to evaluate to false.
+        short-circuit* unless the "strict" attribute has been set to a true
+        value. So for the sake of efficiency it's worthwhile to specify the
+        switch rules most likely to evaluate to true before those more
+        likely to evaluate to false.
 
-        A rule may take the form of a code reference or an array reference
-        of code references. The code reference (or first code reference in
-        the array) must return a true value to trigger the switch to the new
-        state, and false not to switch to the new state. When executed, it
-        will be passed the FSA::State object for the state for which the
-        rules were defined, along with any other arguments passed to
-        "try_switch()" or "switch()"--the methods that execute the rule code
-        references. These arguments may be inputs that are specifically
-        tested to determine whether to switch states. To be polite, the
-        rules should not transform the passed values if they're returning
-        false, as other rules may need to evaluate them (unless you're
-        building some sort of chaining rules--but those aren't really rules,
-        are they?).
+        Rules are best specified as hash references with the following keys:
 
-        Any other code references in the array will be executed during the
-        switch, after the "on_exit" actions have been executed in the
-        current state, but before the "on_enter" actions execute in the new
-        state. Two arguments will be passed to these code references: the
-        FSA::State object for the state for which they were defined, and the
-        FSA::State object for the new state (which will not yet be the
-        current state).
+        rule
+            A code reference or value that will be evaluated to determine
+            whether to switch to the specified state. The value must be true
+            or the code reference must return a true value to trigger the
+            switch to the new state, and false not to switch to the new
+            state. When executed, it will be passed the FSA::State object
+            for the state for which the rules were defined, along with any
+            other arguments passed to "try_switch()" or "switch()"--the
+            methods that execute the rule code references. These arguments
+            may be inputs that are specifically tested to determine whether
+            to switch states. To be polite, rules should not transform the
+            passed values if they're returning false, as other rules may
+            need to evaluate them (unless you're building some sort of
+            chaining rules--but those aren't really rules, are they?).
 
-        A rule may also be simply specify scalar variable, in which case
-        that value will be used to determine whether the rule evaluates to a
-        true or false value. You may also use a simple scalar as the first
-        item in an array reference if you also need to specify switch
-        actions. Either way, a true value always triggers the switch, while
-        a false value never will.
+        message
+            An optional message that will be added to the current state when
+            the rule specified by the "rule" parameter evaluates to true.
+            The message will also be used to label switch labels in the
+            output of the "graph()" method.
+
+        actions
+            An array reference of code references to be executed during the
+            switch, after the "on_exit" actions have been executed in the
+            current state, but before the "on_enter" actions execute in the
+            new state. Two arguments will be passed to these code
+            references: the FSA::State object for the state for which they
+            were defined, and the FSA::State object for the new state (which
+            will not yet be the current state).
+
+        A couple of examples:
+
+          rules => [
+              foo => {
+                  rule => 1
+              },
+              bar => {
+                  rule => \&goto_bar,
+                  message => 'Have we got a bar?',
+              },
+              yow => {
+                  rule => \&goto_yow,
+                  message => 'Yow!',
+                  actions => [ \&action_one, \&action_two],
+              }
+          ]
+
+        A rule may also simply be a code reference or value that will be
+        evaluated when FSA::Rules is determining whether to switch to the
+        new state. You might want just specify a value or code reference if
+        you don't need a message label or switch actions to be executed. For
+        example, this "rules" specification:
+
+          rules => [
+              foo => 1
+          ]
+
+        Is equivalent to this "rules" specification:
+
+          rules => [
+              foo => { rule => 1 }
+          ]
+
+        And finally, you can specify a rule as an array reference. In this
+        case, the first item in the array will be evaluated to determine
+        whether to switch to the new state, and any other items must be code
+        references that will be executed during the switch. For example,
+        this "rules" specification:
+
+          rules => [
+              yow => [ \&check_yow, \&action_one, \&action_two ]
+          ]
+
+        Is equivalent to this "rules" specification:
+
+          rules => [
+              yow => {
+                  rule =>  \&check_yow,
+                  actions =? [ \&action_one, \&action_two ],
+              }
+          ]
 
 Instance Interface
   Instance Methods
@@ -182,15 +230,26 @@ Instance Interface
     in the call to "new()". If the machine is already in a state, an
     exception will be thrown. Returns the start state FSA::State object.
 
-   state
-      my $state = $fsa->state;
-      $fsa->state($state);
+   at
+      $fsa->switch until $fsa->at('game_over');
+
+    Requires a statename. Returns false if the current machine state does
+    not match the name. Otherwise, it returns the state.
+
+   curr_state
+      my $curr_state = $fsa->curr_state;
+      $fsa->curr_state($curr_state);
 
     Get or set the current FSA::State object. Pass a state name or object to
     set the state. Setting a new state will cause the "on_exit" actions of
     the current state to be executed, if there is a current state, and then
     execute the "on_enter" and "do" actions of the new state. Returns the
-    new FSA::State object when setting the state.
+    new FSA::State object when setting the current state.
+
+   state
+    Deprecated alias for "curr_state()". This method will issue a warning
+    and will be removed in a future version of FSA::Rules. Use
+    "curr_state()", instead.
 
    prev_state
       my $prev_state = $fsa->prev_state;
@@ -276,7 +335,7 @@ Instance Interface
       my $fsa = FSA::Rules->new(
           foo => {
               do    => { ++shift->machine->{count} },
-              rules => [ do => 1 ],
+              rules => [ foo => 1 ],
           }
       );
       $fsa->done( sub { shift->{count} >= 5 });
@@ -306,7 +365,7 @@ Instance Interface
     repeatedly until "done()" returns a true value. In other words, it's a
     convenient shortcut for:
 
-        $fsa->start unless $self->state;
+        $fsa->start unless $self->curr_state;
         $fsa->switch until $self->done;
 
     But be careful when calling this method. If you have no failed switches
@@ -411,6 +470,30 @@ Instance Interface
 
     State: bar { message => 'and yet another message', result => 2 }
 
+   graph
+      my $graph_viz = $fsa->graph(@graph_viz_args);
+      $graph_viz = $fas->(\%params, @graph_viz_args);
+
+    Constructs and returns a GraphViz object useful for generating graphical
+    representations of the complete rules engine. The parameters to
+    "graph()" are all those supported by the GraphViz constructor; consult
+    the GraphViz documentation for details.
+
+    An optional hash ref of parameters may be passed as the first argument
+    to "graph()". The supported parameters are:
+
+    label_wrap
+        The label wrap length for graphs. Each edge on the graph has a
+        "label." If the rules for a given state were specified as hash
+        references in the call to "new()", the "message" key will used as
+        the label; otherwise the label is blank. When used as labels,
+        messages are wrapped in order to make labels fit better. The default
+        maximum line length is 25. However, you may set a different wrap
+        length using this parameter.
+
+    Note: If "GraphViz" is not available on your system, this method will
+    warn and return.
+
 FSA::State Interface
     FSA::State objects represent individual states in a state machine. They
     are passed as the first argument to state actions, where their methods
@@ -423,6 +506,13 @@ FSA::State Interface
     implementation or via the "notes()" method), or retrieve other states
     from the state machine using its "states()" method and then access its
     hash data directly.
+
+  Constructor
+   new
+      my $state = FSA::State->new;
+
+    Constructs and returns a new FSA::State object. Not intended to be
+    called directly, but by FSA::Rules.
 
   Instance Methods
    name
@@ -525,10 +615,10 @@ FSA::State Interface
     method, and not intended to be called directly.
 
 To Do
-    Add strict attribute.
+    Factor FSA::Class into a separate file.
 
 Bugs
-    Please send bug reports to <bug-fsa-statemachine@rt.cpan.org>.
+    Please send bug reports to <bug-fsa-rules@rt.cpan.org>.
 
 Author
     David Wheeler <david@kineticode.com>

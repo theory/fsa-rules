@@ -1,6 +1,6 @@
 Revision history for Perl extension FSA::Rules.
 
-0.20
+0.20  2004-12-24T18:38:57
       - Modified Synopsis to show off the result() method.
       - Other minor documentation fixes spotted by Curtis Poe.
       - Added graph support. [Curtis Poe]
