@@ -1,9 +1,9 @@
-package DFA::Rules;
+package FSA::Rules;
 
 # $Id$
 
 use strict;
-$DFA::Rules::VERSION = '0.02';
+$FSA::Rules::VERSION = '0.02';
 
 =head1 Name
 
@@ -16,13 +16,13 @@ other than all uppercase.
 
 =end comment
 
-DFA::Rules - A simple Perl state machine
+FSA::Rules - A simple Perl state machine
 
 =head1 Synopsis
 
-  use DFA::Rules;
+  use FSA::Rules;
 
-  my $dfa = DFA::Rules->new(
+  my $fsa = FSA::Rules->new(
      ping => {
          on_enter => sub { print "Entering ping\n" },
          do       => [ sub { print "ping!\n" },
@@ -48,28 +48,28 @@ DFA::Rules - A simple Perl state machine
      },
   );
 
-  $dfa->start;
-  $dfa->check while $dfa->{count} <= 21;
+  $fsa->start;
+  $fsa->check while $fsa->{count} <= 21;
 
 =head1 Description
 
-This class implements a simple DFA state machine. As a simple implementation
-of a powerful concept, it differs slightly from the ideal DFA model in that it
+This class implements a simple FSA state machine. As a simple implementation
+of a powerful concept, it differs slightly from the ideal FSA model in that it
 does not enforce a single possible switch from one state to another. Rather,
 it short circuits the evaluation of the rules for such switches, so that the
 first rule to return a true value will trigger its switch and no other
 switch rules will be checked.
 
-DFA::Rules uses named states so that it's easy to tell what state you're in
+FSA::Rules uses named states so that it's easy to tell what state you're in
 and what state you want to go to. Each state may optionally define actions
 that are triggered upon entering the state, after entering the state, and upon
 exiting the state. They may also define rules for switching to other states,
 and these rules may specify the execution of switch-specific actions. All
 actions are defined in terms of anonymous subroutines that should expect the
-DFA object itself to be passed as the sole argument.
+FSA object itself to be passed as the sole argument.
 
-DFA::Rules objects are implemented as empty hash references, so the action
-subroutines can use the DFA::Rules object passed as the sole argument to store
+FSA::Rules objects are implemented as empty hash references, so the action
+subroutines can use the FSA::Rules object passed as the sole argument to store
 data for other states to access, without the possibility of interfering with
 the state machine itself.
 
@@ -83,9 +83,9 @@ the state machine itself.
 
 =head3 new
 
-  my $dfa = DFA::Rules->new(@state_table);
+  my $fsa = FSA::Rules->new(@state_table);
 
-Constructs and returns a new DFA::Rules object. The parameters define the
+Constructs and returns a new FSA::Rules object. The parameters define the
 state table, where each key is the name of a state and the following hash
 reference defines the state, its actions and its switch rules. The first state
 parameter is considered to be the start state; call the C<start()> method to
@@ -223,7 +223,7 @@ sub new {
 
 =head3 start
 
-  $dfa->start;
+  $fsa->start;
 
 Starts the state machine by setting the state to the first state defined in
 the call to C<new()>. Returns the name of the start state.
@@ -242,13 +242,13 @@ sub start {
 
 =head3 state
 
-  my $state = $dfa->state;
-  $dfa->state($state);
+  my $state = $fsa->state;
+  $fsa->state($state);
 
 Get or set the current state. Setting the state causes the C<on_exit> actions
 of the current state to be executed, if there is a current state, and then
 executes the C<on_enter> and C<do> actions of the new state. Returns the
-DFA::Rules object when setting the state.
+FSA::Rules object when setting the state.
 
 =cut
 
@@ -282,7 +282,7 @@ sub state {
 
 =head3 try_switch
 
-  my $state = $dfa->try_switch;
+  my $state = $fsa->try_switch;
 
 Checks the switch rules of the current state and switches to the first new
 state for which a rule returns a true value. If the switch rule has switch
@@ -310,7 +310,7 @@ sub try_switch {
 
 =head3 switch
 
-  my $state = eval { $dfa->switch };
+  my $state = eval { $fsa->switch };
   print "No can do" if $@;
 
 The fatal form of C<try_switch()>. This method attempts to switch states and
@@ -333,15 +333,15 @@ sub switch {
 
 =head3 done
 
-  my $done = $dfa->done;
-  $dfa->done($done);
+  my $done = $fsa->done;
+  $fsa->done($done);
 
 Get or set a value to indicate whether the engine is done running. This can be
 useful for state actions to set to the appropriate value, and then the user of
 the state object can simply call done as appropriate. Something like this:
 
-  $dfa->start;
-  $dfa->switch until $dfa->done;
+  $fsa->start;
+  $fsa->switch until $fsa->done;
 
 Although you could just use the C<run()> method if you wanted to do that.
 
@@ -358,20 +358,20 @@ sub done {
 
 =head3 run
 
-  $dfa->run;
+  $fsa->run;
 
-This method starts the DFA engine (if it hasn't already been set to a state)
+This method starts the FSA engine (if it hasn't already been set to a state)
 and then calls the C<switch()> method repeatedly until C<done()> returns a
 true value. IOW, it's a convenient shortcut for:
 
-    $dfa->start unless $states{$self}->{current};
-    $dfa->switch until $self->done;
+    $fsa->start unless $states{$self}->{current};
+    $fsa->switch until $self->done;
 
 But be careful when calling this method. If you have no failed swtiches
 between states and the states never set the C<done> attribute to a true value,
 then this method will never die or return, but run forever. So plan carefully!
 
-Returns the DFA object.
+Returns the FSA object.
 
 =cut
 
@@ -395,7 +395,7 @@ __END__
 
 =head1 Bugs
 
-Please send bug reports to <bug-dfa-statemachine@rt.cpan.org>.
+Please send bug reports to <bug-fsa-statemachine@rt.cpan.org>.
 
 =head1 Author
 

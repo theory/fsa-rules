@@ -1,10 +1,10 @@
 Name
-    DFA::Rules - A simple Perl state machine
+    FSA::Rules - A simple Perl state machine
 
 Synopsis
-      use DFA::Rules;
+      use FSA::Rules;
 
-      my $dfa = DFA::Rules->new(
+      my $fsa = FSA::Rules->new(
          ping => {
              on_enter => sub { print "Entering ping\n" },
              do       => [ sub { print "ping!\n" },
@@ -30,37 +30,37 @@ Synopsis
          },
       );
 
-      $dfa->start;
-      $dfa->check while $dfa->{count} <= 21;
+      $fsa->start;
+      $fsa->check while $fsa->{count} <= 21;
 
 Description
-    This class implements a simple DFA state machine. As a simple
+    This class implements a simple FSA state machine. As a simple
     implementation of a powerful concept, it differs slightly from the ideal
-    DFA model in that it does not enforce a single possible switch from one
+    FSA model in that it does not enforce a single possible switch from one
     state to another. Rather, it short circuits the evaluation of the rules
     for such switches, so that the first rule to return a true value will
     trigger its switch and no other switch rules will be checked.
 
-    DFA::Rules uses named states so that it's easy to tell what state you're
+    FSA::Rules uses named states so that it's easy to tell what state you're
     in and what state you want to go to. Each state may optionally define
     actions that are triggered upon entering the state, after entering the
     state, and upon exiting the state. They may also define rules for
     switching to other states, and these rules may specify the execution of
     switch-specific actions. All actions are defined in terms of anonymous
-    subroutines that should expect the DFA object itself to be passed as the
+    subroutines that should expect the FSA object itself to be passed as the
     sole argument.
 
-    DFA::Rules objects are implemented as empty hash references, so the
-    action subroutines can use the DFA::Rules object passed as the sole
+    FSA::Rules objects are implemented as empty hash references, so the
+    action subroutines can use the FSA::Rules object passed as the sole
     argument to store data for other states to access, without the
     possibility of interfering with the state machine itself.
 
 Class Interface
   Constructor
    new
-      my $dfa = DFA::Rules->new(@state_table);
+      my $fsa = FSA::Rules->new(@state_table);
 
-    Constructs and returns a new DFA::Rules object. The parameters define
+    Constructs and returns a new FSA::Rules object. The parameters define
     the state table, where each key is the name of a state and the following
     hash reference defines the state, its actions and its switch rules. The
     first state parameter is considered to be the start state; call the
@@ -129,22 +129,22 @@ Class Interface
 Instance Interface
   Instance Methods
    start
-      $dfa->start;
+      $fsa->start;
 
     Starts the state machine by setting the state to the first state defined
     in the call to "new()". Returns the name of the start state.
 
    state
-      my $state = $dfa->state;
-      $dfa->state($state);
+      my $state = $fsa->state;
+      $fsa->state($state);
 
     Get or set the current state. Setting the state causes the "on_exit"
     actions of the current state to be executed, if there is a current
     state, and then executes the "on_enter" and "do" actions of the new
-    state. Returns the DFA::Rules object when setting the state.
+    state. Returns the FSA::Rules object when setting the state.
 
    try_switch
-      my $state = $dfa->try_switch;
+      my $state = $fsa->try_switch;
 
     Checks the switch rules of the current state and switches to the first
     new state for which a rule returns a true value. If the switch rule has
@@ -154,7 +154,7 @@ Instance Interface
     "undef" if it cannot switch to another state.
 
    switch
-      my $state = eval { $dfa->switch };
+      my $state = eval { $fsa->switch };
       print "No can do" if $@;
 
     The fatal form of "try_switch()". This method attempts to switch states
@@ -166,7 +166,7 @@ To Do
     Add tracing.
 
 Bugs
-    Please send bug reports to <bug-dfa-statemachine@rt.cpan.org>.
+    Please send bug reports to <bug-fsa-statemachine@rt.cpan.org>.
 
 Author
     David Wheeler <david@kineticode.com>

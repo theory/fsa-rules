@@ -6,11 +6,11 @@ use strict;
 use Test::More tests => 14;
 #use Test::More 'no_plan';
 
-BEGIN { use_ok('DFA::Rules') }
+BEGIN { use_ok('FSA::Rules') }
 
 my @msgs;
 
-ok my $dfa = DFA::Rules->new(
+ok my $fsa = FSA::Rules->new(
     ping => {
         on_enter => sub { push @msgs, "Entering ping\n" },
         do       => [ sub { push @msgs, "ping!\n" },
@@ -35,11 +35,11 @@ ok my $dfa = DFA::Rules->new(
                   ],
         ],
     },
-), "Create the ping pong DFA machine";
+), "Create the ping pong FSA machine";
 
-is $dfa->start, 'ping', "Start the game";
-is $dfa->switch, $dfa->state, "Number $dfa->{count}: " . $dfa->state
-  until $dfa->done;
+is $fsa->start, 'ping', "Start the game";
+is $fsa->switch, $fsa->state, "Number $fsa->{count}: " . $fsa->state
+  until $fsa->done;
 my @check = <DATA>;
 is_deeply \@msgs, \@check, "Check that the messages are in the right order";
 

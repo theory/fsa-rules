@@ -1,7 +1,7 @@
-Revision history for Perl extension DFA::Rules.
+Revision history for Perl extension FSA::Rules.
 
 0.02
-      - Changed name to DFA::Rules. Thanks to the module-authors list for the
+      - Changed name to FSA::Rules. Thanks to the module-authors list for the
         feedback!
       - Changed the "enter" and "leave" parameters to "on_enter" and
         "on_exit", respectively. Suggested by Tim Bunce.

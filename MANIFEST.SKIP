@@ -25,4 +25,4 @@
 \b\.#
 
 # Avoid build files.
-^DFA-Rules
+^FSA-Rules
