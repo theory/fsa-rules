@@ -19,12 +19,12 @@ ok $fsa = $CLASS->new(
     foo => {},
 ), "Construct with a single state";
 
-is $fsa->state, undef, "... The current state should be undefined";
-ok my $state =  $fsa->state('foo'), "... We should be able to set the state";
+is $fsa->curr_state, undef, "... The current state should be undefined";
+ok my $state =  $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
 is $state->machine, $fsa, '... The state object should return the machine';
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->done, undef, "... It should not be done";
 is $fsa->done(1), $fsa, "... But we can set doneness";
 is $fsa->done, 1, "... And then retreive that value";
@@ -33,7 +33,7 @@ is $fsa->strict(1), $fsa, "... But we can set strict";
 is $fsa->strict, 1, "... And now strict is turned on";
 
 # Try a bogus state.
-eval { $fsa->state('bogus') };
+eval { $fsa->curr_state('bogus') };
 ok my $err = $@, "... Assigning a bogus state should fail";
 like $err, qr/No such state "bogus"/, "... And throw the proper exception";
 
@@ -44,12 +44,12 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a single state with an action";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The code should not have been executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The code should now have been executed";
 
 # Try a do code array ref.
@@ -60,12 +60,12 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a single state with two actions";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The code should not have been executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 2, "... Both actions should now have been executed";
 
 # Try a single enter action.
@@ -76,13 +76,13 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a single state with an enter action";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The code should not have been executed";
 is $fsa->{foo_enter}, undef, "... The enter code should not have executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The code should now have been executed";
 is $fsa->{foo_enter}, 1, "... The enter code should have executed";
 
@@ -96,13 +96,13 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a single state with multiple enter actions";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The code should not have been executed";
 is $fsa->{foo_enter}, undef, "... The enter code should not have executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The code should now have been executed";
 is $fsa->{foo_enter}, 2, "... Both enter actions should have executed";
 
@@ -119,22 +119,22 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a two states and a exit action";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The foo code should not have been executed";
 is $fsa->{foo_enter}, undef, "... The 'foo' enter code should not have executed";
 is $fsa->{bar}, undef, "... The bar code should not have been executed";
 is $fsa->{bar_enter}, undef, "... The enter code should not have executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The 'foo' code should now have been executed";
 is $fsa->{foo_enter}, 1, "... The  'foo' enter action should have executed";
 is $fsa->{foo_exit}, undef, "... The  'foo' exit action should not have executed";
-ok $state = $fsa->state('bar'), "... We should be able to change the state to 'bar'";
+ok $state = $fsa->curr_state('bar'), "... We should be able to change the state to 'bar'";
 isa_ok $state, 'FSA::State';
 is $state->name, 'bar', "... The name of the current state should be 'bar'";
-is $fsa->state, $state, "... The current state should be 'bar'";
+is $fsa->curr_state, $state, "... The current state should be 'bar'";
 is $fsa->{foo_exit}, 1, "... The 'foo' exit action should have executed";
 is $fsa->{bar}, 1, "... The 'bar' code should now have been executed";
 is $fsa->{bar_enter}, 1, "... The 'bar' enter action should have executed";
@@ -152,22 +152,22 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a two states and multiple exit actions";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The foo code should not have been executed";
 is $fsa->{foo_enter}, undef, "... The 'foo' enter code should not have executed";
 is $fsa->{bar}, undef, "... The bar code should not have been executed";
 is $fsa->{bar_enter}, undef, "... The enter code should not have executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The 'foo' code should now have been executed";
 is $fsa->{foo_enter}, 1, "... The  'foo' enter action should have executed";
 is $fsa->{foo_exit}, undef, "... The  'foo' exit action should not have executed";
-ok $state = $fsa->state('bar'), "... We should be able to change the state to 'bar'";
+ok $state = $fsa->curr_state('bar'), "... We should be able to change the state to 'bar'";
 isa_ok $state, 'FSA::State';
 is $state->name, 'bar', "... The name of the current state should be 'bar'";
-is $fsa->state, $state, "... The current state should be 'bar'";
+is $fsa->curr_state, $state, "... The current state should be 'bar'";
 is $fsa->{foo_exit}, 2, "... Both 'foo' exit actions should have executed";
 is $fsa->{bar}, 1, "... The 'bar' code should now have been executed";
 is $fsa->{bar_enter}, 1, "... The  'bar' enter action should have executed";
@@ -188,22 +188,22 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a two states and a switch rule";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The foo code should not have been executed";
 is $fsa->{foo_enter}, undef, "... The 'foo' enter code should not have executed";
 is $fsa->{bar}, undef, "... The bar code should not have been executed";
 is $fsa->{bar_enter}, undef, "... The enter code should not have executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The 'foo' code should now have been executed";
 is $fsa->{foo_enter}, 1, "... The  'foo' enter action should have executed";
 is $fsa->{foo_exit}, undef, "... The 'foo' exit action should not have executed";
 ok $state =  $fsa->try_switch, "... The try_switch method should return the 'bar' state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'bar', "... The name of the current state should be 'bar'";
-is $fsa->state, $state, "... The current state should be 'bar'";
+is $fsa->curr_state, $state, "... The current state should be 'bar'";
 is $fsa->{foo_exit}, 1, "... Now the 'foo' exit action should have executed";
 is $fsa->{bar}, 1, "... And the 'bar' code should now have been executed";
 is $fsa->{bar_enter}, 1, "... And the 'bar' enter action should have executed";
@@ -233,22 +233,22 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a two states and a switch rule";
 
-is $fsa->state, undef, "Adding labels to rules should not affect behavior";
+is $fsa->curr_state, undef, "Adding labels to rules should not affect behavior";
 is $fsa->{foo}, undef, "... The foo code should not have been executed";
 is $fsa->{foo_enter}, undef, "... The 'foo' enter code should not have executed";
 is $fsa->{bar}, undef, "... The bar code should not have been executed";
 is $fsa->{bar_enter}, undef, "... The enter code should not have executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The 'foo' code should now have been executed";
 is $fsa->{foo_enter}, 1, "... The  'foo' enter action should have executed";
 is $fsa->{foo_exit}, undef, "... The 'foo' exit action should not have executed";
 ok $state =  $fsa->try_switch, "... The try_switch method should return the 'bar' state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'bar', "... The name of the current state should be 'bar'";
-is $fsa->state, $state, "... The current state should be 'bar'";
+is $fsa->curr_state, $state, "... The current state should be 'bar'";
 is $fsa->{foo_exit}, 1, "... Now the 'foo' exit action should have executed";
 is $fsa->{bar}, 1, "... And the 'bar' code should now have been executed";
 is $fsa->{bar_enter}, 1, "... And the 'bar' enter action should have executed";
@@ -279,22 +279,22 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a two states and a switch rule with its own action";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The foo code should not have been executed";
 is $fsa->{foo_enter}, undef, "... The 'foo' enter code should not have executed";
 is $fsa->{bar}, undef, "... The bar code should not have been executed";
 is $fsa->{bar_enter}, undef, "... The enter code should not have executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The 'foo' code should now have been executed";
 is $fsa->{foo_enter}, 1, "... The  'foo' enter action should have executed";
 is $fsa->{foo_exit}, undef, "... The 'foo' exit action should not have executed";
 ok $state =  $fsa->switch, "... The switch method should return the 'bar' state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'bar', "... The name of the current state should be 'bar'";
-is $fsa->state, $state, "... The current state should be 'bar'";
+is $fsa->curr_state, $state, "... The current state should be 'bar'";
 is $fsa->{foo_exit}, 1, "... Now the 'foo' exit action should have executed";
 is $fsa->{bar}, 1, "... And the 'bar' code should now have been executed";
 is $fsa->{foo_bar}, 1, "... And the 'foo' to 'bar' switch action should have executed";
@@ -317,22 +317,22 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a two states and a switch rule of '1'";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The foo code should not have been executed";
 is $fsa->{foo_enter}, undef, "... The 'foo' enter code should not have executed";
 is $fsa->{bar}, undef, "... The bar code should not have been executed";
 is $fsa->{bar_enter}, undef, "... The enter code should not have executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The 'foo' code should now have been executed";
 is $fsa->{foo_enter}, 1, "... The  'foo' enter action should have executed";
 is $fsa->{foo_exit}, undef, "... The 'foo' exit action should not have executed";
 ok $state =  $fsa->switch, "... The switch method should return the 'bar' state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'bar', "... The name of the current state should be 'bar'";
-is $fsa->state, $state, "... The current state should be 'bar'";
+is $fsa->curr_state, $state, "... The current state should be 'bar'";
 is $fsa->{foo_exit}, 1, "... Now the 'foo' exit action should have executed";
 is $fsa->{bar}, 1, "... And the 'bar' code should now have been executed";
 is $fsa->{bar_enter}, 1, "... And the 'bar' enter action should have executed";
@@ -353,22 +353,22 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a two states, a switch rule of '1', and a switch action";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The foo code should not have been executed";
 is $fsa->{foo_enter}, undef, "... The 'foo' enter code should not have executed";
 is $fsa->{bar}, undef, "... The bar code should not have been executed";
 is $fsa->{bar_enter}, undef, "... The enter code should not have executed";
-ok $state = $fsa->state('foo'), "... We should be able to set the state";
+ok $state = $fsa->curr_state('foo'), "... We should be able to set the state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The 'foo' code should now have been executed";
 is $fsa->{foo_enter}, 1, "... The  'foo' enter action should have executed";
 is $fsa->{foo_exit}, undef, "... The 'foo' exit action should not have executed";
 ok $state =  $fsa->switch, "... The switch method should return the 'bar' state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'bar', "... The name of the current state should be 'bar'";
-is $fsa->state, $state, "... The current state should be 'bar'";
+is $fsa->curr_state, $state, "... The current state should be 'bar'";
 is $fsa->{foo_exit}, 1, "... Now the 'foo' exit action should have executed";
 is $fsa->{foo_bar}, 1, "... And the 'foo' to 'bar' switch action should have executed";
 is $fsa->{bar}, 1, "... And the 'bar' code should now have been executed";
@@ -381,12 +381,12 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a single state with an enter action";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The code should not have been executed";
 ok $state = $fsa->start, "... The start method should return the start state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The code should now have been executed";
 eval { $fsa->start };
 ok $err = $@, '... Calling start on a running machine should die';
@@ -403,13 +403,13 @@ ok $fsa = $CLASS->new(
     },
 ), "Construct with a single state with an enter action";
 
-is $fsa->state, undef, "... The current state should be undefined";
+is $fsa->curr_state, undef, "... The current state should be undefined";
 is $fsa->{foo}, undef, "... The 'foo' code should not have been executed";
 is $fsa->{bar}, undef, "... The 'bar' code should not have been executed";
 ok $state = $fsa->start, "... The start method should return the start state";
 isa_ok $state, 'FSA::State';
 is $state->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $state, "... The current state should be 'foo'";
+is $fsa->curr_state, $state, "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The code should now have been executed";
 is $fsa->{bar}, undef, "... The 'bar' code still should not have been executed";
 
@@ -432,12 +432,12 @@ ok $fsa = $CLASS->new(
 ok $state = $fsa->start, "... Call to start() should return state '0'";
 isa_ok $state, 'FSA::State';
 is $state->name, 0, "... The name of the current state should be '0'";
-is $fsa->state, $state, "... The current state should be '0'";
+is $fsa->curr_state, $state, "... The current state should be '0'";
 
 ok $state = $fsa->switch, "... Call to switch should return '1' state";
 isa_ok $state, 'FSA::State';
 is $state->name, 1, "... The name of the current state should be '1'";
-is $fsa->state, $state, "... The current state should be '1'";
+is $fsa->curr_state, $state, "... The current state should be '1'";
 
 # Try run().
 ok $fsa = $CLASS->new(
@@ -451,7 +451,7 @@ is $fsa->{count}, 3,
 # Reset and try again.
 $fsa->{count} = 0;
 is $fsa->done(0), $fsa, "... We should be able to reset done";
-ok $state = $fsa->state,  "... We should be left in state '0'";
+ok $state = $fsa->curr_state,  "... We should be left in state '0'";
 isa_ok $state, 'FSA::State';
 is $state->name, 0, "... The name of the current state should be '0'";
 is $fsa->run, $fsa, "... Run should still work.";
@@ -507,18 +507,18 @@ ok $fsa = $CLASS->new(
 ok my $foo = $fsa->start, "... It should start with 'foo'";
 isa_ok $foo, 'FSA::State';
 is $foo->name, 'foo', "... The name of the current state should be 'foo'";
-is $fsa->state, $foo, "... The current state should be 'foo'";
+is $fsa->curr_state, $foo, "... The current state should be 'foo'";
 ok my $bar = $fsa->switch('bar'),
   "... It should switch to 'bar' when passed 'bar'";
 isa_ok $bar, 'FSA::State';
 is $bar->name, 'bar', "... The name of the current state should be 'bar'";
-is $fsa->state, $bar, "... The current state should be 'bar'";
+is $fsa->curr_state, $bar, "... The current state should be 'bar'";
 is $fsa->switch('bar'), $bar,
   "... It should stay as 'bar' when passed 'bar' again";
-is $fsa->state, $bar, "... So the state should still be 'bar'";
+is $fsa->curr_state, $bar, "... So the state should still be 'bar'";
 is $fsa->try_switch('foo'), $foo,
   "... It should switch back to 'foo' when passed 'foo'";
-is $fsa->state, $foo, "... So the state should now be back to 'foo'";
+is $fsa->curr_state, $foo, "... So the state should now be back to 'foo'";
 
 # Try some notes.
 is_deeply $fsa->notes, {test => 'foo'}, "Notes should start out empty";
@@ -547,7 +547,7 @@ ok $fsa = $CLASS->new(
     bar => {},
 ), "Construct with a optional parameters";
 
-is $fsa->state->name, 'foo',
+is $fsa->curr_state->name, 'foo',
   "... And the engine should be started with the 'bar' state";
 is $fsa->done, 'done', '... And done should be set to "done"';
 is $fsa->strict, 1, "... And strict should be turned on";
@@ -559,7 +559,7 @@ ok $fsa = $CLASS->new(
     bar => { rules => [ foo => 1, bar => 1 ] },
 ), "Constuct with strict enabled and multiple possible paths";
 
-is $fsa->state->name, 'foo', "... The engine should be started";
+is $fsa->curr_state->name, 'foo', "... The engine should be started";
 is $fsa->strict, 1, "... Strict should be enabled";
 is $fsa->switch->name, 'bar', "... The switch to 'bar' should succeed";
 eval { $fsa->try_switch };
@@ -605,7 +605,7 @@ ok $fsa = $CLASS->new(
     bar => { rules => [ foo => 1, bar => 0 ] },
 ), "Constuct with strict enabled and valid paths";
 
-is $fsa->state->name, 'foo', "... The engine should be started";
+is $fsa->curr_state->name, 'foo', "... The engine should be started";
 is $fsa->strict, 1, "... Strict should be enabled";
 is $fsa->switch->name, 'bar', "... The switch to 'bar' should succeed";
 is $fsa->switch->name, 'foo', "... The switch back to 'foo' should succeed";

@@ -4,7 +4,7 @@ package FSA::Rules;
 
 use strict;
 use Clone qw/clone/;
-$FSA::Rules::VERSION = '0.11';
+$FSA::Rules::VERSION = '0.20';
 
 =begin comment
 
@@ -374,7 +374,7 @@ sub start {
         'Cannot start machine because it is already running'
     ) if $fsa->{current};
     my $state = $fsa->{ord}[0] or return $self;
-    $self->state($state);
+    $self->curr_state($state);
     return $state;
 }
 
@@ -395,27 +395,27 @@ sub at {
     my $fsa = $machines{$self};
     $self->_croak(qq{No such state "$name"})
       unless exists $fsa->{table}{$name};
-    my $state = $self->state or return;
+    my $state = $self->curr_state or return;
     return unless $state->name eq $name;
     return $state;
 }
 
 ##############################################################################
 
-=head3 state
+=head3 curr_state
 
-  my $state = $fsa->state;
-  $fsa->state($state);
+  my $curr_state = $fsa->curr_state;
+  $fsa->curr_state($curr_state);
 
 Get or set the current FSA::State object. Pass a state name or object to set
 the state. Setting a new state will cause the C<on_exit> actions of the
 current state to be executed, if there is a current state, and then execute
 the C<on_enter> and C<do> actions of the new state. Returns the new FSA::State
-object when setting the state.
+object when setting the current state.
 
 =cut
 
-sub state {
+sub curr_state {
     my $self = shift;
     my $fsa = $machines{$self};
     my $curr = $fsa->{current};
@@ -445,6 +445,21 @@ sub state {
     $state->enter;
     $state->do;
     return $state;
+}
+
+=head3 state
+
+Deprecated alias for C<curr_state()>. This method will issue a warning and
+will be removed in a future version of FSA::Rules. Use C<curr_state()>,
+instead.
+
+=cut
+
+sub state {
+    require Carp;
+    Carp::carp "The state() method has been deprecated. Use curr_state() "
+        . "instead";
+    shift->curr_state(@_);
 }
 
 ##############################################################################
@@ -534,7 +549,7 @@ sub try_switch {
         next unless $code->($state, @_);
         $fsa->{exec} = $rule->{exec};
         $state->message($rule->{message}) if defined $rule->{message};
-        $next = $self->state($rule->{state});
+        $next = $self->curr_state($rule->{state});
         last;
     }
 
@@ -667,7 +682,7 @@ state) by calling C<start()>, and then calls the C<switch()> method repeatedly
 until C<done()> returns a true value. In other words, it's a convenient
 shortcut for:
 
-    $fsa->start unless $self->state;
+    $fsa->start unless $self->curr_state;
     $fsa->switch until $self->done;
 
 But be careful when calling this method. If you have no failed switches
@@ -680,7 +695,7 @@ Returns the FSA::Rules object.
 
 sub run {
     my $self = shift;
-    $self->start unless $self->state;
+    $self->start unless $self->curr_state;
     $self->switch until $self->done;
     return $self;
 }
@@ -762,7 +777,7 @@ get the last message for that state, instead.
 
 sub last_message {
     my $self = shift;
-    return $self->state->message unless @_;
+    return $self->curr_state->message unless @_;
     return $self->states(@_)->message;
 }
 
@@ -780,7 +795,7 @@ get the last result for that state, instead.
 
 sub last_result {
     my $self = shift;
-    return $self->state->result unless @_;
+    return $self->curr_state->result unless @_;
     return $self->states(@_)->result;
 }
 

@@ -1,6 +1,6 @@
 Revision history for Perl extension FSA::Rules.
 
-0.11
+0.20
       - Modified Synopsis to show off the result() method.
       - Other minor documentation fixes spotted by Curtis Poe.
       - Added graph support. [Curtis Poe]
@@ -15,6 +15,9 @@ Revision history for Perl extension FSA::Rules.
         or array reference. The hash reference may optionally specify a
         rule label, which eases the tracking of rules and allows graphs to
         generate rule labels. [Curtis Poe]
+      - Changed the state() method to curr_state(). The old name has been
+        deprecated, will issue a warnning when called, and will be removed in
+        a future version.
 
 0.10  2004-12-17T23:29:54
       - Moved state-specific methods to new FSA::State class. This is a

@@ -40,7 +40,7 @@ ok my $fsa = FSA::Rules->new(
 ok my $state = $fsa->start, "Start the game";
 isa_ok $state, 'FSA::State';
 is $state->name, 'ping';
-is $fsa->switch, $fsa->state, "Number $fsa->{count}: " . $fsa->state->name
+is $fsa->switch, $fsa->curr_state, "Number $fsa->{count}: " . $fsa->curr_state->name
   until $fsa->done;
 my @check = <DATA>;
 is_deeply \@msgs, \@check, "Check that the messages are in the right order";
