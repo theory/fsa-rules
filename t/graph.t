@@ -63,14 +63,20 @@ ok $fsa = FSA::Rules->new(
     ping => {
         do => sub { state->machine->{count}++ },
         rules     => [
-            end  => { 'Enough Iterations (ping)' => sub { shift->machine->{count} >= 20 } },
+            end  => {
+                rule => sub { shift->machine->{count} >= 20 },
+                message => 'Enough Iterations (ping)'
+            },
             pong => sub { 1 },
         ],
     },
     pong => {
         do => sub { shift->machine->{count}++ },
         rules     => [
-            end  => { 'Enough Iterations' => sub { shift->machine->{count} >= 20 } },
+            end  => {
+                rule => sub { shift->machine->{count} >= 20 },
+                message => 'Enough Iterations'
+            },
             ping => sub { 1 },
         ],
     },

@@ -178,7 +178,7 @@ argument.
           rule => 1,
       },
       state7 => {
-          rule => \&state7_rule,
+          rule    => \&state7_rule,
           message => $optional_message,
           actions => \@optional_actions,
       },
@@ -282,21 +282,24 @@ sub new {
                 my $rules = shift @$rule_spec;
                 my $exec = ref $rules eq 'ARRAY' ? $rules : [$rules];
                 my $rule = shift @$exec;
+                my $message;
                 my $ref = ref $rule;
                 if ($ref eq 'HASH') {
-                    my @key = keys %$rule;
-                    $self->_croak(qq{In rule "$state", state "$key":  only one label allowed.})
-                      if @key > 1;
-                    $rule = $rule->{$key[0]}; # extract the code block and ignore the label
+                    $self->_croak(qq{In rule "$state", state "$key":  you must supply a rule.})
+                      unless exists $rule->{rule};
+                    $exec    = $rule->{action}  if exists $rule->{action};
+                    $message = $rule->{message} if exists $rule->{message};
+                    $rule    = $rule->{rule};
                 } elsif ($ref ne 'CODE') {
                     my $val = $rule;
                     $rule = sub { $val };
                 }
 
                 push @rules, {
-                    state => $fsa->{table}{$state},
-                    rule  => $rule,
-                    exec  => $exec,
+                    state   => $fsa->{table}{$state},
+                    rule    => $rule,
+                    exec    => $exec,
+                    message => $message,
                 };
             }
             $def->{rules} = \@rules;
@@ -397,7 +400,6 @@ sub state {
 
     # Exit the current state.
     $curr->exit if $curr;
-
     # Run any switch actions.
     if (my $exec = delete $fsa->{exec}) {
         $_->($curr, $state) for @$exec;
@@ -462,9 +464,8 @@ sub graph {
         next unless exists $definition->{rules};
         while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
             my @edge = ($state => $rule);
-            if (ref $condition eq 'HASH') {
-                my @key = keys %$condition;
-                push @edge => 'label', $key[0]; # constructor enforces only one key
+            if (ref $condition eq 'HASH' && exists $condition->{message}) {
+                push @edge => 'label', $condition->{message};
             }
             $graph->add_edge(@edge);
         }
@@ -539,6 +540,7 @@ sub try_switch {
         my $code = $rule->{rule};
         next unless $code->($state, @_);
         $fsa->{exec} = $rule->{exec};
+        $state->message($rule->{message}) if defined $rule->{message};
         $next = $self->state($rule->{state});
         last;
     }

@@ -3,8 +3,8 @@
 # $Id$
 
 use strict;
-use Test::More 'no_plan';
-#use Test::More tests => 293;
+#use Test::More 'no_plan';
+use Test::More tests => 299;
 
 my $CLASS;
 BEGIN {
@@ -218,10 +218,13 @@ like $err, qr/Cannot determine transition from state "bar"/,
 ok $fsa = $CLASS->new(
     foo => {
         on_enter => sub { shift->machine->{foo_enter}++ },
-        do => sub { shift->machine->{foo}++ },
-        on_exit => sub { shift->machine->{foo_exit}++ },
+        do       => sub { shift->machine->{foo}++ },
+        on_exit  => sub { shift->machine->{foo_exit}++ },
         rules => [
-            bar => { 'some rule label' => sub { shift->machine->{foo} } },
+            bar => { 
+                rule    => sub { shift->machine->{foo} },
+                message => 'some rule label',
+            },
         ],
     },
     bar => {
@@ -249,6 +252,9 @@ is $fsa->state, $state, "... The current state should be 'bar'";
 is $fsa->{foo_exit}, 1, "... Now the 'foo' exit action should have executed";
 is $fsa->{bar}, 1, "... And the 'bar' code should now have been executed";
 is $fsa->{bar_enter}, 1, "... And the 'bar' enter action should have executed";
+my @messages = map { $_->message } $fsa->states('foo');
+is $messages[0], 'some rule label',
+  '... and states should have messages automatically added';
 
 # Try switch actions.
 ok $fsa = $CLASS->new(
