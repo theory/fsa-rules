@@ -3,17 +3,18 @@ Revision history for Perl extension FSA::Rules.
 0.11
       - Modified Synopsis to show off the result() method.
       - Other minor documentation fixes spotted by Curtis Poe.
-      - Added graph support. Implementation by Curtis Poe.
-      - Added at() method. Implmentation by Curtis Poe.
-      - Simplified synopsis by Curtis Poe.
+      - Added graph support. [Curtis Poe]
+      - Added at() method. [Curtis Poe]
+      - Simplified synopsis. [Curtis Poe]
       - Added "state_class" parameter to simplify subclassing FSA::State.
       - A rule defined as a false scalar value, rather than a code reference,
         now works properly.
       - A successful attempt to switch states with the "strict" attribute
         enabled now succeeds if no other rules evaluate to true.
-      - Each rule may now take an optional has reference instead of a sub
-        reference.  This makes message tracking for rules easier.  It's
-        also used by graphs to generate edge labels.
+      - Each rule may now take an optional hash reference instead of a code
+        or array reference. The hash reference may optionally specify a
+        rule label, which eases the tracking of rules and allows graphs to
+        generate rule labels. [Curtis Poe]
       - Added a label_wrap() method to control how labels wrap on the state
         machine diagram.
 

@@ -166,63 +166,99 @@ argument.
 
 =item rules
 
-  rules => [
-      state1 => \&state1_rule,
-      state2 => [ \&state2_rule, \&action ],
-      state3 => 1,
-      state4 => [ 1, \&action ],
-      state5 => {
-          rule => \&state5_rule,
-      },
-      state6 => {
-          rule => 1,
-      },
-      state7 => {
-          rule    => \&state7_rule,
-          message => $optional_message,
-          actions => \@optional_actions,
-      },
-  ]
-
 Optional. The rules for switching from the state to other states. This is an
 array reference but shaped like a hash. The keys are the names of the states
 to consider moving to, while the values are the rules for switching to that
 state. The rules will be executed in the order specified in the array
-reference, and I<they will short-circuit.> So for the sake of efficiency it's
-worthwhile to specify the switch rules most likely to evaluate to true before
-those more likely to evaluate to false.
+reference, and I<they will short-circuit> unless the C<strict> attribute has
+been set to a true value. So for the sake of efficiency it's worthwhile to
+specify the switch rules most likely to evaluate to true before those more
+likely to evaluate to false.
 
-A rule may take the form of a code reference or an array reference of code
-references. The code reference (or first code reference in the array) must
-return a true value to trigger the switch to the new state, and false not to
-switch to the new state. When executed, it will be passed the FSA::State
+Rules are best specified as hash references with the following keys:
+
+=over
+
+=item rule
+
+A code reference or value that will be evaluated to determine whether to
+switch to the specified state. The value must be true or the code reference
+must return a true value to trigger the switch to the new state, and false not
+to switch to the new state. When executed, it will be passed the FSA::State
 object for the state for which the rules were defined, along with any other
 arguments passed to C<try_switch()> or C<switch()>--the methods that execute
 the rule code references. These arguments may be inputs that are specifically
-tested to determine whether to switch states. To be polite, the rules should
-not transform the passed values if they're returning false, as other rules may
+tested to determine whether to switch states. To be polite, rules should not
+transform the passed values if they're returning false, as other rules may
 need to evaluate them (unless you're building some sort of chaining rules--but
 those aren't really rules, are they?).
 
-Any other code references in the array will be executed during the switch,
-after the C<on_exit> actions have been executed in the current state, but
-before the C<on_enter> actions execute in the new state. Two arguments will
-be passed to these code references: the FSA::State object for the state for
-which they were defined, and the FSA::State object for the new state (which
-will not yet be the current state).
+=item message
 
-A rule may also be simply specify scalar variable, in which case that value
-will be used to determine whether the rule evaluates to a true or false value.
-You may also use a simple scalar as the first item in an array reference if
-you also need to specify switch actions. Either way, a true value always
-triggers the switch, while a false value never will.
+An optional message that will be added to the current state when the rule
+specified by the C<rule> parameter evaluates to true. The message will also be
+used to label switch labels in the output of the C<graph()> method.
 
-For every position in the rules array where one would expect to find a
-subroutine reference, a hash reference may be substituted.  This reference may
-have only one key (a rule label) and the value must be the code reference.
-This not not affect normal operation.  However, if one wishes to create a graph
-of the state machine, these optional labels will be used as the labels on a
-directed graph, making the state machine graph easier to understand.
+=item actions
+
+An array reference of code references to be executed during the switch, after
+the C<on_exit> actions have been executed in the current state, but before the
+C<on_enter> actions execute in the new state. Two arguments will be passed to
+these code references: the FSA::State object for the state for which they were
+defined, and the FSA::State object for the new state (which will not yet be
+the current state).
+
+=back
+
+A couple of examples:
+
+  rules => [
+      foo => {
+          rule => 1
+      },
+      bar => {
+          rule => \&goto_bar,
+          message => 'Have we got a bar?',
+      },
+      yow => {
+          rule => \&goto_yow,
+          message => 'Yow!',
+          actions => [ \&action_one, \&action_two],
+      }
+  ]
+
+A rule may also simply be a code reference or value that will be evaluated
+when FSA::Rules is determining whether to switch to the new state. You might want
+just specify a value or code reference if you don't need a message label or
+switch actions to be executed. For example, this C<rules> specification:
+
+  rules => [
+      foo => 1
+  ]
+
+Is equivalent to this C<rules> specification:
+
+  rules => [
+      foo => { rule => 1 }
+  ]
+
+And finally, you can specify a rule as an array reference. In this case, the
+first item in the array will be evaluated to determine whether to switch to
+the new state, and any other items must be code references that will be
+executed during the switch. For example, this C<rules> specification:
+
+  rules => [
+      yow => [ \&check_yow, \&action_one, \&action_two ]
+  ]
+
+Is equivalent to this C<rules> specification:
+
+  rules => [
+      yow => {
+          rule =>  \&check_yow,
+          actions =? [ \&action_one, \&action_two ],
+      }
+  ]
 
 =back
 
@@ -315,12 +351,6 @@ sub new {
     return $self;
 }
 
-sub _croak {
-    my ($proto, @messages) = @_;
-    require Carp;
-    Carp::croak(@messages);
-}
-
 ##############################################################################
 
 =head1 Instance Interface
@@ -354,8 +384,8 @@ sub start {
 
   $fsa->switch until $fsa->at('game_over');
 
-Requires a statename.  Returns false if the current machine state does not match
-the name.  Otherwise, it returns the state.
+Requires a statename. Returns false if the current machine state does not
+match the name. Otherwise, it returns the state.
 
 =cut
 
@@ -363,9 +393,9 @@ sub at {
     my ($self, $name) = @_;
     $self->_croak("You must supply a state name") unless defined $name;
     my $fsa = $machines{$self};
-    $self->_croak(qq{No such state "$name"}) 
-        unless exists $fsa->{table}{$name};
-    my $state = $self->state;
+    $self->_croak(qq{No such state "$name"})
+      unless exists $fsa->{table}{$name};
+    my $state = $self->state or return;
     return unless $state->name eq $name;
     return $state;
 }
@@ -434,72 +464,6 @@ sub prev_state {
     my $stacktrace = $self->raw_stacktrace;
     return unless @$stacktrace > 1;
     return $machines{$self}->{table}{$stacktrace->[-2][0]};
-}
-
-##############################################################################
-
-=head3 graph
-
-  $rules->graph(@graph_viz_args);
-
-This method takes the same arguments as the C<GraphViz> constructor.  Returns
-a C<GraphViz> object.
-
-If C<GraphViz> is not available on your system, this method will warn and
-return.
-
-=cut
-
-sub graph {
-    my $self = shift;
-    eval "use GraphViz 2.00;";
-    if ($@) {
-        warn "Cannot create graph object: $@";
-        return;
-    }
-    my ($machine) = clone($machines{$self}->{graph});
-    my $graph = GraphViz->new(@_);
-    while (my ($state,$definition) = splice @$machine => 0, 2) {
-        $graph->add_node($state);
-        next unless exists $definition->{rules};
-        while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
-            my @edge = ($state => $rule);
-            if (ref $condition eq 'HASH' && exists $condition->{message}) {
-                my $wrap = $self->label_wrap;
-                $condition->{message} =~ s/(.{0,$wrap})\s+/$1\n/g;
-                push @edge => 'label', $condition->{message};
-            }
-            $graph->add_edge(@edge);
-        }
-    }
-    return $graph;
-}
-
-##############################################################################
-
-=head3 label_wrap
-
-  $fsa->label_wrap(15);
-
-This methods sets the label wrap length for graphs.  Each edge on the graph 
-has a "label."  If the rules are specified with a hashref, the C<message> key
-is used as the label, otherwise the label is blank.  In order to make them fit
-better, messages are wrapped when used as labels. The default max line length
-is 25.  However, you may set a different wrap length using this method.  If
-called without arguments, returns the current wrap length.
-
-=cut
-
-my $wrap = 25;
-sub label_wrap {
-    my $self = shift;
-    return $wrap unless @_;
-    my $new_wrap = shift;
-    unless ($new_wrap =~ /^[[:digit:]]+/ and $new_wrap > 0) {
-        $self->_croak("The argument to label_wrap() must be a positive integer.");
-    }
-    $wrap = $new_wrap;
-    return $self;
 }
 
 ##############################################################################
@@ -915,6 +879,80 @@ sub stacktrace {
         $stacktrace .= "\n";
     }
     return $stacktrace;
+}
+
+##############################################################################
+
+=head3 graph
+
+  $rules->graph(@graph_viz_args);
+
+This method takes the same arguments as the C<GraphViz> constructor.  Returns
+a C<GraphViz> object.
+
+If C<GraphViz> is not available on your system, this method will warn and
+return.
+
+=cut
+
+sub graph {
+    my $self = shift;
+    eval "use GraphViz 2.00;";
+    if ($@) {
+        warn "Cannot create graph object: $@";
+        return;
+    }
+    my ($machine) = clone($machines{$self}->{graph});
+    my $graph = GraphViz->new(@_);
+    while (my ($state,$definition) = splice @$machine => 0, 2) {
+        $graph->add_node($state);
+        next unless exists $definition->{rules};
+        while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
+            my @edge = ($state => $rule);
+            if (ref $condition eq 'HASH' && exists $condition->{message}) {
+                my $wrap = $self->label_wrap;
+                $condition->{message} =~ s/(.{0,$wrap})\s+/$1\n/g;
+                push @edge => 'label', $condition->{message};
+            }
+            $graph->add_edge(@edge);
+        }
+    }
+    return $graph;
+}
+
+##############################################################################
+
+=head3 label_wrap
+
+  $fsa->label_wrap(15);
+
+This methods sets the label wrap length for graphs.  Each edge on the graph 
+has a "label."  If the rules are specified with a hashref, the C<message> key
+is used as the label, otherwise the label is blank.  In order to make them fit
+better, messages are wrapped when used as labels. The default max line length
+is 25.  However, you may set a different wrap length using this method.  If
+called without arguments, returns the current wrap length.
+
+=cut
+
+my $wrap = 25;
+sub label_wrap {
+    my $self = shift;
+    return $wrap unless @_;
+    my $new_wrap = shift;
+    unless ($new_wrap =~ /^[[:digit:]]+/ and $new_wrap > 0) {
+        $self->_croak("The argument to label_wrap() must be a positive integer.");
+    }
+    $wrap = $new_wrap;
+    return $self;
+}
+
+##############################################################################
+# Private error handler.
+sub _croak {
+    shift;
+    require Carp;
+    Carp::croak(@_);
 }
 
 ##############################################################################
