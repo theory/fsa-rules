@@ -1,5 +1,7 @@
 Revision history for Perl extension FSA::Rules.
 
+0.11
+
 0.10  2004-12-17T23:29:54
       - Moved state-specific methods to new FSA::State class. This is a
         pretty significant change and can introduce backwards compatability
