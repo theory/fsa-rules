@@ -4,7 +4,7 @@
 
 use strict;
 #use Test::More 'no_plan';
-use Test::More tests => 284;
+use Test::More tests => 289;
 
 my $CLASS;
 BEGIN { 
@@ -560,3 +560,33 @@ ok $err = $@, "... Try to switch from bar should throw an exception";
 like $err,
   qr/Attempt to switch from state "bar" improperly found multiple possible destination states: "foo", "bar"/,
   "... And the error message should be appropriate (and verbose)";
+
+can_ok $fsa, 'at';
+$fsa = FSA::Rules->new(
+   ping => {
+       do => sub { shift->machine->{count}++ },
+       rules => [
+           game_over => sub { shift->machine->{count} >= 20 },
+           pong      => 1,
+       ],
+   },
+   pong => {
+       rules => [ ping => 1, ], # always goes back to pong
+   },
+   game_over => { 
+       do => sub { shift->machine->{save_this} = 1 },
+   },
+);
+
+$fsa->start;
+eval {$fsa->at};
+like $@, qr/You must supply a state name/,
+  '... and it should croak() if you do not supply a state name';
+eval {$fsa->at('no_such_state')};
+like $@, qr/No such state "no_such_state"/,
+  '... or if no state with the supplied name exists';
+$fsa->switch until $fsa->at('game_over');
+is $fsa->{count}, 20,
+  '... and it should terminate when I want it to.';
+is $fsa->{save_this}, 1,
+  '... and execute the "do" action.';

@@ -25,33 +25,27 @@ FSA::Rules - Build simple rules-based state machines in Perl
 
   my $fsa = FSA::Rules->new(
      ping => {
-         on_enter => sub { print "Entering ping\n" },
-         do       => [ sub { print "ping!\n" },
-                       sub { shift->result('pong'); },
-                       sub { shift->machine->{count}++ }
-         ],
-         on_exit  => sub { print "Exiting 'ping'\n" },
-         rules    => [
-             pong => sub { shift->result eq 'pong' },
+         do => sub {
+             print "ping!\n";
+             my $state = shift;
+             $state->result('pong');
+             $state->machine->{count}++;
+         },
+         rules => [
+             game_over => sub { shift->machine->{count} >= 20 },
+             pong      => sub { shift->result eq 'pong' },
          ],
      },
 
      pong => {
-         on_enter => [ sub { print "Entering pong\n" },
-                       sub { shift->result('ping') } ],
-         do       => sub { print "pong!\n"; },
-         on_exit  => sub { print "Exiting 'pong'\n" },
-         rules    => [
-             ping => [ sub { shift->result eq 'ping' },
-                       sub { print "pong to ping\n" },
-             ]
-         ],
+         do => sub { print "pong!\n" },
+         rules => [ ping => 1, ], # always goes back to pong
      },
+     game_over => { do => sub { print "Game Over" } }
   );
 
   $fsa->start;
-  $fsa->done(sub { shift->{count} >= 21 });
-  $fsa->switch until $fsa->done;
+  $fsa->switch until $fsa->at('game_over');
 
 =head1 Description
 
@@ -241,7 +235,7 @@ sub new {
         my $state = shift;
         my $def = shift;
         $self->_croak(qq{The state "$state" already exists})
-          if $fsa->{table}{$state};
+          if exists $fsa->{table}{$state};
 
         # Setup enter, exit, and do actions.
         for (qw(on_enter do on_exit)) {
@@ -278,7 +272,7 @@ sub new {
                 my $rule = shift @$exec;
                 if (ref $rule eq 'HASH') {
                     my @key = keys %$rule;
-                    $self->_croak(qq{Attempt to define more than one label for state "$key" in rule "$state"})
+                    $self->_croak(qq{In rule "$state", state "$key":  only one label allowed.})
                       if @key > 1;
                     $rule = $rule->{$key[0]}; # extract the code block and ignore the label
                 }
@@ -332,6 +326,28 @@ sub start {
     ) if $fsa->{current};
     my $state = $fsa->{ord}[0] or return $self;
     $self->state($state);
+    return $state;
+}
+
+##############################################################################
+
+=head3 at
+
+  $fsa->switch until $fsa->at('game_over');
+
+Requires a statename.  Returns false if the current machine state does not match
+the name.  Otherwise, it returns the state.
+
+=cut
+
+sub at {
+    my ($self, $name) = @_;
+    $self->_croak("You must supply a state name") unless defined $name;
+    my $fsa = $machines{$self};
+    $self->_croak(qq{No such state "$name"}) 
+        unless exists $fsa->{table}{$name};
+    my $state = $self->state;
+    return unless $state->name eq $name;
     return $state;
 }
 
@@ -418,7 +434,7 @@ return.
 
 sub graph {
     my $self = shift;
-    eval "use GraphViz;";
+    eval "use GraphViz 2.00;";
     if ($@) {
         warn "Cannot create graph object: $@";
         return;
