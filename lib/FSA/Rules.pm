@@ -885,13 +885,32 @@ sub stacktrace {
 
 =head3 graph
 
-  $fsa->graph(@graph_viz_args);
+  my $graph_viz = $fsa->graph(@graph_viz_args);
+  $graph_viz = $fas->(\%params, @graph_viz_args);
 
-This method takes the same arguments as the C<GraphViz> constructor. Returns a
-C<GraphViz> object.
+Constructs and returns a L<GraphViz|GraphViz> object useful for generating
+graphical representations of the complete rules engine. The parameters to
+C<graph()> are all those supported by the GraphViz constructor; consult the
+L<GraphViz|GraphViz> documentation for details.
 
-If C<GraphViz> is not available on your system, this method will warn and
-return.
+An optional hash ref of parameters may be passed as the first argument to
+C<graph()>. The supported parameters are:
+
+=over
+
+=item label_wrap
+
+The label wrap length for graphs. Each edge on the graph has a "label." If the
+rules for a given state were specified as hash references in the call to
+C<new()>, the C<message> key will used as the label; otherwise the label is
+blank. When used as labels, messages are wrapped in order to make labels fit
+better. The default maximum line length is 25. However, you may set a
+different wrap length using this parameter.
+
+=back
+
+B<Note:> If C<GraphViz> is not available on your system, this method will warn
+and return.
 
 =cut
 
@@ -902,7 +921,9 @@ sub graph {
         warn "Cannot create graph object: $@";
         return;
     }
-    my ($machine) = clone($machines{$self}->{graph});
+    my $params = ref $_[0] ? shift : {};
+    $params->{label_wrap} ||= 25;
+    my $machine = clone($machines{$self}->{graph});
     my $graph = GraphViz->new(@_);
     while (my ($state, $definition) = splice @$machine => 0, 2) {
         $graph->add_node($state);
@@ -910,41 +931,13 @@ sub graph {
         while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
             my @edge = ($state => $rule);
             if (ref $condition eq 'HASH' && exists $condition->{message}) {
-                my $wrap = $self->label_wrap;
-                $condition->{message} =~ s/(.{0,$wrap})\s+/$1\n/g;
+                $condition->{message} =~ s/(.{0,$params->{label_wrap}})\s+/$1\n/g;
                 push @edge => 'label', $condition->{message};
             }
             $graph->add_edge(@edge);
         }
     }
     return $graph;
-}
-
-##############################################################################
-
-=head3 label_wrap
-
-  $fsa->label_wrap(15);
-
-This methods sets the label wrap length for graphs.  Each edge on the graph 
-has a "label."  If the rules are specified with a hashref, the C<message> key
-is used as the label, otherwise the label is blank.  In order to make them fit
-better, messages are wrapped when used as labels. The default max line length
-is 25.  However, you may set a different wrap length using this method.  If
-called without arguments, returns the current wrap length.
-
-=cut
-
-my $wrap = 25;
-sub label_wrap {
-    my $self = shift;
-    return $wrap unless @_;
-    my $new_wrap = shift;
-    unless ($new_wrap =~ /^[[:digit:]]+/ and $new_wrap > 0) {
-        $self->_croak("The argument to label_wrap() must be a positive integer.");
-    }
-    $wrap = $new_wrap;
-    return $self;
 }
 
 ##############################################################################
