@@ -3,7 +3,7 @@ package FSA::Rules;
 # $Id$
 
 use strict;
-$FSA::Rules::VERSION = '0.06';
+$FSA::Rules::VERSION = '0.07';
 
 =begin comment
 
@@ -175,6 +175,7 @@ sub new {
         table => {},
         start => $_[0],
         done  => sub { return },
+        stack => [],
     };
 
     while (@_) {
@@ -266,6 +267,8 @@ sub state {
     my $self = shift;
     return $states{$self}->{current} unless @_;
 
+    push @{$states{$self}->{stack}} => $states{$self}->{current} 
+      if defined $states{$self}->{current};
     my $state = shift;
     my $def = $states{$self}->{table}{$state}
       or require Carp && Carp::croak(qq{No such state "$state"});
@@ -285,6 +288,48 @@ sub state {
     $states{$self}->{current} = $state;
     $_->($self) for @{$def->{on_enter}};
     $_->($self) for @{$def->{do}};
+    return $self;
+}
+
+##############################################################################
+
+=head3 stack
+
+  my $stack = $fsa->stack;
+
+Returns an array ref of all states the machine has transformed into, beginning
+with the first state.  Until a state transition occurs, its name will not be
+pushed onto the stack.  This method is useful for debugging.
+
+=cut
+
+sub stack {
+    return $states{$_[0]}->{stack};
+}
+
+##############################################################################
+
+=head3 reset
+
+  $fsa->reset;
+
+The C<reset()> method will clear the stack and set the current state to undef.
+This method is used when needing to reuse a state machine.
+
+Returns C<$self>.
+
+ my $fsa = FSA::Rules->new(@state_machine);
+ $fsa->done(sub {$done});
+ $fsa->run;
+ # do a bunch of stuff
+ $fsa->reset->run;
+
+=cut
+
+sub reset {
+    my $self = shift;
+    $states{$self}->{stack}   = [];
+    $states{$self}->{current} = undef;
     return $self;
 }
 

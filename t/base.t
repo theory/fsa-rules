@@ -4,14 +4,18 @@
 
 use strict;
 #use Test::More 'no_plan';
-use Test::More tests => 176;
+use Test::More tests => 189;
 
-BEGIN { use_ok('FSA::Rules') }
+my $CLASS;
+BEGIN { 
+    $CLASS = 'FSA::Rules';
+    use_ok($CLASS) or die;
+}
 
-ok my $fsa = FSA::Rules->new, "Construct an empty state machine";
-isa_ok $fsa, 'FSA::Rules';
+ok my $fsa = $CLASS->new, "Construct an empty state machine";
+isa_ok $fsa, $CLASS;
 
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {},
 ), "Construct with a single state";
 
@@ -28,7 +32,7 @@ ok my $err = $@, "... Assigning a bogus state should fail";
 like $err, qr/No such state "bogus"/, "... And throw the proper exception";
 
 # Try a do code ref.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         do => sub { shift->{foo}++ }
     },
@@ -41,7 +45,7 @@ is $fsa->state, 'foo', "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The code should now have been executed";
 
 # Try a do code array ref.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         do => [ sub { shift->{foo}++ }, sub { shift->{foo} ++ } ],
     },
@@ -54,7 +58,7 @@ is $fsa->state, 'foo', "... The current state should be 'foo'";
 is $fsa->{foo}, 2, "... Both actions should now have been executed";
 
 # Try a single enter action.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         on_enter => sub { shift->{foo_enter}++ },
         do => sub { shift->{foo}++ }
@@ -70,7 +74,7 @@ is $fsa->{foo}, 1, "... The code should now have been executed";
 is $fsa->{foo_enter}, 1, "... The enter code should have executed";
 
 # Try an enter action array ref.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         on_enter => [ sub { shift->{foo_enter}++ }, sub { shift->{foo_enter}++ } ],
         do => sub { shift->{foo}++ }
@@ -86,7 +90,7 @@ is $fsa->{foo}, 1, "... The code should now have been executed";
 is $fsa->{foo_enter}, 2, "... Both enter actions should have executed";
 
 # Try a second state with exit actions in the first state.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         on_enter => sub { shift->{foo_enter}++ },
         do => sub { shift->{foo}++ },
@@ -114,7 +118,7 @@ is $fsa->{bar}, 1, "... The 'bar' code should now have been executed";
 is $fsa->{bar_enter}, 1, "... The 'bar' enter action should have executed";
 
 # Try a second state with multiple exit actions in the first state.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         on_enter => sub { shift->{foo_enter}++ },
         do => sub { shift->{foo}++ },
@@ -142,7 +146,7 @@ is $fsa->{bar}, 1, "... The 'bar' code should now have been executed";
 is $fsa->{bar_enter}, 1, "... The  'bar' enter action should have executed";
 
 # Set up switch rules (rules).
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         on_enter => sub { shift->{foo_enter}++ },
         do => sub { shift->{foo}++ },
@@ -179,7 +183,7 @@ like $err, qr/Cannot determine transition from state "bar"/,
   "... And throw the proper exception";
 
 # Try switch actions.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         on_enter => sub { shift->{foo_enter}++ },
         do => sub { shift->{foo}++ },
@@ -211,7 +215,7 @@ is $fsa->{foo_bar}, 1, "... And the 'foo' to 'bar' switch action should have exe
 is $fsa->{bar_enter}, 1, "... And the 'bar' enter action should have executed";
 
 # Try a simple true value switch rule.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         on_enter => sub { shift->{foo_enter}++ },
         do => sub { shift->{foo}++ },
@@ -242,7 +246,7 @@ is $fsa->{bar}, 1, "... And the 'bar' code should now have been executed";
 is $fsa->{bar_enter}, 1, "... And the 'bar' enter action should have executed";
 
 # Try a simple true value switch rule with switch actions.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         on_enter => sub { shift->{foo_enter}++ },
         do => sub { shift->{foo}++ },
@@ -274,7 +278,7 @@ is $fsa->{bar}, 1, "... And the 'bar' code should now have been executed";
 is $fsa->{bar_enter}, 1, "... And the 'bar' enter action should have executed";
 
 # Try start().
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         do => sub { shift->{foo}++ }
     },
@@ -287,7 +291,7 @@ is $fsa->state, 'foo', "... The current state should be 'foo'";
 is $fsa->{foo}, 1, "... The code should now have been executed";
 
 # Try start() with a second state.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         do => sub { shift->{foo}++ }
     },
@@ -306,7 +310,7 @@ is $fsa->{bar}, undef, "... The 'bar' code still should not have been executed";
 
 # Try a bad switch state name.
 eval {
-    FSA::Rules->new(
+    $CLASS->new(
         foo => { rules => [bad => 1] }
     )
 };
@@ -316,7 +320,7 @@ like $err, qr/Unknown state "bad" referenced by state "foo"/,
   "... And give the appropriate error message";
 
 # Try numbered states.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     0 => { rules => [ 1 => 1 ] },
     1 => {},
 ), "Construct with numbered states";
@@ -326,7 +330,7 @@ is $fsa->switch, 1, "... Call to switch should return '1'";
 is $fsa->state, 1, "... Call to state() should now return '1'";
 
 # Try run().
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     0 => { rules => [ 1 => [ 1, sub { shift->{count}++ } ] ] },
     1 => { rules => [ 0 => [ 1, sub { $_[0]->done($_[0]->{count} == 3 ) } ] ] },
 ), "Construct with simple states to run";
@@ -343,7 +347,7 @@ is $fsa->{count}, 3,
   "... And it should have run through the proper number of again.";
 
 # Try done with a code refernce.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     0 => { rules => [ 1 => [ 1, sub { shift->{count}++ } ] ] },
     1 => { rules => [ 0 => [ 1 ] ] },
 ), "Construct with simple states to test a done code ref";
@@ -357,13 +361,13 @@ is $fsa->{count}, 3,
   "... And it should have run through the proper number of again.";
 
 # Check for duplicate states.
-eval { FSA::Rules->new( foo => {}, foo => {}) };
+eval { $CLASS->new( foo => {}, foo => {}) };
 ok $err = $@, 'Attempt to specify the same state twice should throw an error';
 like $err, qr/The state "foo" already exists/,
   '... And that exception should have the proper message';
 
 # Try try_switch with parameters.
-ok $fsa = FSA::Rules->new(
+ok $fsa = $CLASS->new(
     foo => {
         rules => [
             bar => [ sub { $_[1]  eq 'bar' } ],
@@ -388,3 +392,28 @@ is $fsa->state, 'bar', "... So the state should still be 'bar'";
 is $fsa->try_switch('foo'), 'foo',
   "... It should switch back to 'foo' when passed 'foo'";
 is $fsa->state, 'foo', "... So the state should now be back to 'foo'";
+
+can_ok $CLASS, 'stack';
+is_deeply $fsa->stack, [qw/foo bar bar/],
+  "... and it should have a stack of the state transformations";
+
+can_ok $CLASS, 'reset';
+$fsa->reset;
+is_deeply $fsa->stack, [],
+  '... It should clear out the stack';
+is $fsa->state, undef, '... It set the current state to undef';
+
+# these are not duplicate tests.  We need to ensure that the state machine
+# behavior is deterministic
+is $fsa->start, 'foo', "... It should start with 'foo'";
+is $fsa->switch('bar'), 'bar',
+  "... It should switch to 'bar' when passed 'bar'";
+is $fsa->state, 'bar', "... So the state should now be 'bar'";
+is $fsa->switch('bar'), 'bar',
+  "... It should stay as 'bar' when passed 'bar' again";
+is $fsa->state, 'bar', "... So the state should still be 'bar'";
+is $fsa->try_switch('foo'), 'foo',
+  "... It should switch back to 'foo' when passed 'foo'";
+is $fsa->state, 'foo', "... So the state should now be back to 'foo'";
+is_deeply $fsa->stack, [qw/foo bar bar/],
+  "... and it should have a stack of the state transformations";
