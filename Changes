@@ -1,5 +1,7 @@
 Revision history for Perl extension FSA::Rules.
 
+0.22
+
 0.21  2004-12-31T18:30:20
       - Calling reset() now empties the machine hashref and state hashrefs.
         [Curtis & David]
