@@ -3,8 +3,8 @@
 # $Id$
 
 use strict;
-#use Test::More 'no_plan';
-use Test::More tests => 293;
+use Test::More 'no_plan';
+#use Test::More tests => 293;
 
 my $CLASS;
 BEGIN {
@@ -301,6 +301,7 @@ ok $fsa = $CLASS->new(
         do => sub { shift->machine->{foo}++ },
         on_exit => sub { shift->machine->{foo_exit}++ },
         rules => [
+            foo => 0,
             bar => 1
         ],
     },
@@ -590,6 +591,18 @@ is $fsa->{count}, 20,
   '... and it should terminate when I want it to.';
 is $fsa->{save_this}, 1,
   '... and execute the "do" action.';
+
+# Try a valid strict.
+ok $fsa = $CLASS->new(
+    { strict => 1, start => 1 },
+    foo => { rules => [ bar => 1 ] },
+    bar => { rules => [ foo => 1, bar => 0 ] },
+), "Constuct with strict enabled and valid paths";
+
+is $fsa->state->name, 'foo', "... The engine should be started";
+is $fsa->strict, 1, "... Strict should be enabled";
+is $fsa->switch->name, 'bar', "... The switch to 'bar' should succeed";
+is $fsa->switch->name, 'foo', "... The switch back to 'foo' should succeed";
 
 # Make sure that subclasses work.
 {

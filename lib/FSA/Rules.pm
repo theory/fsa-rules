@@ -282,13 +282,17 @@ sub new {
                 my $rules = shift @$rule_spec;
                 my $exec = ref $rules eq 'ARRAY' ? $rules : [$rules];
                 my $rule = shift @$exec;
-                if (ref $rule eq 'HASH') {
+                my $ref = ref $rule;
+                if ($ref eq 'HASH') {
                     my @key = keys %$rule;
                     $self->_croak(qq{In rule "$state", state "$key":  only one label allowed.})
                       if @key > 1;
                     $rule = $rule->{$key[0]}; # extract the code block and ignore the label
+                } elsif ($ref ne 'CODE') {
+                    my $val = $rule;
+                    $rule = sub { $val };
                 }
-                $rule = sub { $rule } unless ref $rule eq 'CODE';
+
                 push @rules, {
                     state => $fsa->{table}{$state},
                     rule  => $rule,
@@ -530,12 +534,13 @@ sub try_switch {
     my $state = $fsa->{current};
     # XXX Factor this out to the state class to evaluate the rules?
     my @rules = $state->_rules;
-    my $rule;
-    while ($rule = shift @rules) {
+    my $next;
+    while (my $rule = shift @rules) {
         my $code = $rule->{rule};
         next unless $code->($state, @_);
         $fsa->{exec} = $rule->{exec};
-        return $self->state($rule->{state}) unless @rules && $self->strict;
+        $next = $self->state($rule->{state});
+        return $next unless @rules && $self->strict;
         last;
     }
 
@@ -544,12 +549,12 @@ sub try_switch {
             $self->_croak(
                 'Attempt to switch from state "', $state->name,
                 '" improperly found multiple possible destination states: "',
-                join('", "', map { $_->{state}->name } $rule, @new), '"'
+                join('", "', $next->name,  map { $_->{state}->name } @new), '"'
             );
         }
     }
 
-    return undef;
+    return $next;
 }
 
 ##############################################################################
