@@ -913,14 +913,17 @@ C<graph()>. The supported parameters are:
 
 =over
 
-=item label_wrap
+=item text_wrap
 
-The label wrap length for graphs. Each edge on the graph has a "label." If the
-rules for a given state were specified as hash references in the call to
-C<new()>, the C<message> key will used as the label; otherwise the label is
-blank. When used as labels, messages are wrapped in order to make labels fit
-better. The default maximum line length is 25. However, you may set a
-different wrap length using this parameter.
+The text wrap length for graphs.  There's a lot of text on the graph.  This
+property will automatically wrap all text to the given length using the
+C<Text::Wrap> module.
+
+Each edge on the graph has a "label." If the rules for a given state were
+specified as hash references in the call to C<new()>, the C<message> key will
+used as the label; otherwise the label is blank. When used as labels, messages
+are wrapped in order to make labels fit better. The default maximum line length
+is 25. However, you may set a different wrap length using this parameter.
 
 =back
 
@@ -931,25 +934,24 @@ and return.
 
 sub graph {
     my $self = shift;
-    eval "use GraphViz 2.00;";
+    eval "use GraphViz 2.00; use Text::Wrap";
     if ($@) {
         warn "Cannot create graph object: $@";
         return;
     }
     my $params = ref $_[0] ? shift : {};
-    $params->{label_wrap} ||= 25;
+    $Text::Wrap::columns = $params->{text_wrap} || 25;
     my $machine = clone($machines{$self}->{graph});
     my $graph = GraphViz->new(@_);
     while (my ($state, $definition) = splice @$machine => 0, 2) {
-        $graph->add_node($state);
+        $graph->add_node(wrap('','',$state));
         next unless exists $definition->{rules};
         while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
             my @edge = ($state => $rule);
             if (ref $condition eq 'HASH' && exists $condition->{message}) {
-                $condition->{message} =~ s/(.{0,$params->{label_wrap}})\s+/$1\n/g;
-                push @edge => 'label', $condition->{message};
+                push @edge => 'label', wrap('','',$condition->{message});
             }
-            $graph->add_edge(@edge);
+            $graph->add_edge(@edge, decorate => 1);
         }
     }
     return $graph;
@@ -1219,18 +1221,19 @@ __END__
 
 Please send bug reports to <bug-fsa-rules@rt.cpan.org>.
 
-=head1 Author
+=head1 Authors
 
 =begin comment
 
 Fake-out Module::Build. Delete if it ever changes to support =head1 headers
 other than all uppercase.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 =end comment
 
 David Wheeler <david@kineticode.com>
+Curtis "Ovid" Poe <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
 
 =head1 Copyright and License
 

@@ -34,9 +34,9 @@ ok my $fsa = FSA::Rules->new(
 
 can_ok $fsa, 'graph';
 isa_ok $fsa->graph, 'GraphViz';
-#open FOO, '>', 'pingpong.png' or die $!;
-#print FOO $fsa->graph->as_png;
-#close FOO;
+open FOO, '>', 'pingpong.png' or die $!;
+print FOO $fsa->graph->as_png;
+close FOO;
 my $expected = <<'END_TEXT';
 digraph test {
         node [label="\N"];
@@ -44,10 +44,10 @@ digraph test {
         ping [label=ping, pos="65,162", width="0.75", height="0.50"];
         end [label=end, pos="37,18", width="0.75", height="0.50"];
         pong [label=pong, pos="65,90", width="0.75", height="0.50"];
-        ping -> end [pos="e,32,36 47,149 37,137 34,127 29,108 24,87 26,64 30,46"];
-        ping -> pong [pos="e,59,108 59,144 58,136 58,127 58,118"];
-        pong -> end [pos="e,44,35 58,73 55,64 51,54 47,45"];
-        pong -> ping [pos="e,71,144 71,108 72,116 72,125 72,134"];
+        ping -> end [decorate=1, pos="e,32,36 47,149 37,137 34,127 29,108 24,87 26,64 30,46"];
+        ping -> pong [decorate=1, pos="e,59,108 59,144 58,136 58,127 58,118"];
+        pong -> end [decorate=1, pos="e,44,35 58,73 55,64 51,54 47,45"];
+        pong -> ping [decorate=1, pos="e,71,144 71,108 72,116 72,125 72,134"];
 }
 END_TEXT
 my $graph_text = $fsa->graph->as_text;
@@ -89,23 +89,21 @@ $expected = <<'END_TEXT';
 digraph test {
         graph [bgcolor=magenta];
         node [label="\N", shape=circle];
-        graph [bb="0,0,197,278"];
-        ping [label=ping, pos="166,249", width="0.81", height="0.81"];
-        end [label=end, pos="66,26", width="0.69", height="0.71"];
-        pong [label=pong, pos="166,151", width="0.86", height="0.86"];
-        ping -> end [label="Enough Iterations\n(ping)", pos="e,51,47 137,244 104,237 51,220 27,182 2,143 26,88 46,56", lp="80,151"];
-        ping -> pong [pos="e,160,182 160,221 159,212 159,202 159,192"];
-        pong -> end [label="Enough\nIterations", pos="e,82,46 146,127 129,106 105,76 88,54", lp="153,86"];
-        pong -> ping [pos="e,172,221 172,182 173,191 173,201 173,211"];
+        graph [bb="0,0,150,278"];
+        ping [label=ping, pos="119,249", width="0.81", height="0.81"];
+        end [label=end, pos="54,26", width="0.69", height="0.71"];
+        pong [label=pong, pos="119,151", width="0.86", height="0.86"];
+        ping -> end [decorate=1, label="Enough\nIterations\n(ping)", pos="e,42,48 92,238 70,227 41,209 27,182 7,142 23,90 38,57", lp="57,151"];
+        ping -> pong [decorate=1, pos="e,113,182 113,221 112,212 112,202 112,192"];
+        pong -> end [decorate=1, label="Enough\nIterations", pos="e,66,49 105,123 95,104 81,78 71,58", lp="119,86"];
+        pong -> ping [decorate=1, pos="e,125,221 125,182 126,191 126,201 126,211"];
 }
 END_TEXT
 my $graph = $fsa->graph(
+    { text_wrap => 15 },
     bgcolor => 'magenta',
     node    => {shape => 'circle'},
 );
-#open FOO, '>', 'pingpong.png' or die $!;
-#print FOO $graph->as_png;
-#close FOO;
 $graph_text = $graph->as_text;
 $graph_text    =~ s/\t/        /g;
 is $graph_text, $expected,

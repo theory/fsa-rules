@@ -1,6 +1,11 @@
 Revision history for Perl extension FSA::Rules.
 
-0.21
+0.21 
+      - Added "decorate => 1" attribute to graphs to have lines drawn from
+        the edge to its corresponding label. [Curtis Poe]
+      - Changed "label_wrap" to "text_wrap" and had it apply to all text.
+        [Curtis Poe].
+      - Added "Text::Wrap" as a requirement.
 
 0.20  2004-12-24T18:38:57
       - Modified Synopsis to show off the result() method.
