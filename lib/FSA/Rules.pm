@@ -497,12 +497,20 @@ machine. When called with a single state name, it returns the FSA::State object
 object for that state. When called with more than one state name arguments,
 it returns a list or array reference of those states.
 
+If called with any state names that did not exist in the original definition of
+the state machine, this method will C<croak()>.
+
 =cut
 
 sub states {
     my $self = shift;
     my $fsa = $machines{$self};
     return wantarray ? @{$fsa->{ord}} : $fsa->{ord} unless @_;
+
+    if (my @errors = grep { not exists $fsa->{table}{$_} } @_) {
+        $self->_croak("No such state(s) '@errors'");
+    }
+
     return $fsa->{table}{+shift} unless @_ > 1;
     return wantarray ? @{$fsa->{table}}{@_} : [ @{$fsa->{table}}{@_} ];
 

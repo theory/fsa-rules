@@ -1,6 +1,7 @@
 Revision history for Perl extension FSA::Rules.
 
 0.21 
+      - states() will now croak if called with any non-existent states.
       - Added "decorate => 1" attribute to graphs to have lines drawn from
         the edge to its corresponding label. [Curtis Poe]
       - Changed "label_wrap" to "text_wrap" and had it apply to all text.
