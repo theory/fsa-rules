@@ -32,7 +32,7 @@ FSA::Rules - A simple Perl state machine
                        sub { shift->{count}++ }
          ],
          on_exit  => sub { print "Exiting 'ping'\n" },
-         rules   => [
+         rules    => [
              pong => sub { shift->{goto} eq 'pong' },
          ],
      },
@@ -42,7 +42,7 @@ FSA::Rules - A simple Perl state machine
                        sub { shift->{goto} = 'ping' } ],
          do       => sub { print "pong!\n"; },
          on_exit  => sub { print "Exiting 'pong'\n" },
-         rules   => [
+         rules    => [
              ping => [ sub { shift->{goto} eq 'ping' },
                        sub { print "pong to ping\n" },
              ],
