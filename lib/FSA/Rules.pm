@@ -5,8 +5,6 @@ package FSA::Rules;
 use strict;
 $FSA::Rules::VERSION = '0.03';
 
-=head1 Name
-
 =begin comment
 
 Fake-out Module::Build. Delete if it ever changes to support =head1 headers
@@ -14,7 +12,11 @@ other than all uppercase.
 
 =head1 NAME
 
+FSA::Rules - A simple Perl state machine
+
 =end comment
+
+=head1 Name
 
 FSA::Rules - A simple Perl state machine
 
