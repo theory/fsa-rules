@@ -4,7 +4,7 @@
 
 use strict;
 #use Test::More 'no_plan';
-use Test::More tests => 304;
+use Test::More tests => 310;
 
 my $CLASS;
 BEGIN {
@@ -221,7 +221,7 @@ ok $fsa = $CLASS->new(
         do       => sub { shift->machine->{foo}++ },
         on_exit  => sub { shift->machine->{foo_exit}++ },
         rules => [
-            bar => { 
+            bar => {
                 rule    => sub { shift->machine->{foo} },
                 message => 'some rule label',
             },
@@ -538,8 +538,10 @@ is $fsa->notes('my'), 'machine',
 is_deeply $fsa->notes, { test => 'foo', key => 'val', my => 'machine' },
   "... And passing in no arguments should return the complete notes hashref";
 $fsa->{should_not_exist_after_reset} = 1;
+$fsa->states('foo')->{should_not_exist_after_reset} = 1;
 is_deeply $fsa->reset, $fsa, "... Calling reset() should return the machine";
 is_deeply $fsa, {}, "... it should be an empty hashref";
+is_deeply $fsa->states('foo'), {}, "... and the states should be empty, too";
 is $fsa->notes('key'), undef, '... And now passing in a key should return undef';
 is_deeply $fsa->notes, {}, "... and with no arguments, we should get an empty hash";
 
@@ -632,7 +634,7 @@ isa_ok $foo, 'FSA::State';
 
 # test that messages get set even if a state dies
 $fsa = $CLASS->new(
-    alpha => { 
+    alpha => {
         rules => [
             omega => {
                 rule    => 1,
@@ -643,6 +645,39 @@ $fsa = $CLASS->new(
     omega => { do => sub { die } },
 );
 $fsa->start;
-eval {$fsa->switch} until $fsa->at('omega'); 
+eval {$fsa->switch} until $fsa->at('omega');
 is $fsa->states('alpha')->message, 'If I heard a voice from heaven ...',
   '... messages should be set even if the final state dies';
+
+# Test actions passed via a hash reference rule are executed.
+ok $fsa = $CLASS->new(
+    alpha => {
+        rules => [
+            beta => {
+                rule => 1,
+                action => sub { shift->machine->notes(goto_beta => 1) }
+            },
+            omega => {
+                rule    => 1,
+            }
+        ],
+    },
+    beta => {
+        rules => [
+            omega => {
+                rule    => 1,
+                action => [
+                    sub { shift->machine->notes(goto_omega => 1) },
+                    sub { shift->machine->notes(goto_omega2 => 2) },
+                ],
+            }
+        ],
+    },
+    omega => { },
+), "Construct to test for hashref rule actions";
+ok $fsa->start, "Start the machine";
+$fsa->switch until $fsa->at('omega');
+is $fsa->notes('goto_beta'), 1, '... Beta rule action should have executed';
+is $fsa->notes('goto_omega'), 1, '... Omega rule action should have executed';
+is $fsa->notes('goto_omega2'), 2,
+  '... Second omega rule action should have executed';

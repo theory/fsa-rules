@@ -199,14 +199,14 @@ An optional message that will be added to the current state when the rule
 specified by the C<rule> parameter evaluates to true. The message will also be
 used to label switch labels in the output of the C<graph()> method.
 
-=item actions
+=item action
 
-An array reference of code references to be executed during the switch, after
-the C<on_exit> actions have been executed in the current state, but before the
-C<on_enter> actions execute in the new state. Two arguments will be passed to
-these code references: the FSA::State object for the state for which they were
-defined, and the FSA::State object for the new state (which will not yet be
-the current state).
+A code reference or an array reference of code references to be executed
+during the switch, after the C<on_exit> actions have been executed in the
+current state, but before the C<on_enter> actions execute in the new state.
+Two arguments will be passed to these code references: the FSA::State object
+for the state for which they were defined, and the FSA::State object for the
+new state (which will not yet be the current state).
 
 =back
 
@@ -223,7 +223,7 @@ A couple of examples:
       yow => {
           rule => \&goto_yow,
           message => 'Yow!',
-          actions => [ \&action_one, \&action_two],
+          action  => [ \&action_one, \&action_two],
       }
   ]
 
@@ -255,8 +255,8 @@ Is equivalent to this C<rules> specification:
 
   rules => [
       yow => {
-          rule =>  \&check_yow,
-          actions =? [ \&action_one, \&action_two ],
+          rule   =>  \&check_yow,
+          action => [ \&action_one, \&action_two ],
       }
   ]
 
@@ -322,7 +322,10 @@ sub new {
                 if (ref $rule eq 'HASH') {
                     $self->_croak(qq{In rule "$state", state "$key":  you must supply a rule.})
                       unless exists $rule->{rule};
-                    $exec    = $rule->{action}  if exists $rule->{action};
+                    $exec = ref $rule->{action} eq 'ARRAY'
+                      ? $rule->{action}
+                      : [$rule->{action}]
+                      if exists $rule->{action};
                     $message = $rule->{message} if exists $rule->{message};
                     $rule    = $rule->{rule};
                 }
@@ -715,9 +718,9 @@ sub run {
   $fsa->reset;
 
 The C<reset()> method clears the stack and notes and sets the current state to
-C<undef>. Also clears any temporary data stored directly in the machine
-hashref. Use this method when you want to reuse your state machine. Returns the
-DFA::Rules object.
+C<undef>. Also clears any temporary data stored directly in the machine hash
+reference and the state hash references. Use this method when you want to
+reuse your state machine. Returns the DFA::Rules object.
 
   my $fsa = FSA::Rules->new(@state_machine);
   $fsa->done(sub {$done});
@@ -735,9 +738,11 @@ sub reset {
     $fsa->{current} = undef;
     $fsa->{notes} = {};
     @{$fsa->{stack}} = ();
-    @{$states{$_}->{index}} = () for $self->states;
-    my @keys = keys %$self; # must be a two-step process
-    delete $self->{$_} foreach @keys;
+    for my $state ($self->states) {
+        @{$states{$state}->{index}} = ();
+        delete $state->{$_} for keys %$state;
+    }
+    delete $self->{$_} for keys %$self;
     return $self;
 }
 
