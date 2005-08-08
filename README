@@ -319,7 +319,7 @@ Instance Interface
     as its only argument. Note that this varies from the pattern for state
     actions, which should expect the relevant FSA::State object to be passed
     as the argument. Call the "state()" method on th FSA::Rules object if
-    you want the current state in your done code reference.
+    you want the current state in your "done" code reference.
 
     This method can be useful for checking to see if your state engine is
     done running, and calling "switch()" when it isn't. States can set it to
@@ -351,6 +351,12 @@ Instance Interface
 
     Although you could just use the "run()" method if you wanted to do that.
 
+    Note that "done" will be reset to "undef" by a call to "reset()" when
+    it's not a code reference. If it *is* a code reference, you need to be
+    sure to write it in such a way that it knows that things have been reset
+    (by examining states, for example, all of which will have been removed
+    by "reset()").
+
    strict
       my $strict = $fsa->strict;
       $fsa->strict(1);
@@ -381,8 +387,9 @@ Instance Interface
    reset
       $fsa->reset;
 
-    The "reset()" method clears the stack and notes and sets the current
-    state to "undef". Also clears any temporary data stored directly in the
+    The "reset()" method clears the stack and notes, sets the current state
+    to "undef", and sets "done" to "undef" (unless "done" is a code
+    reference). Also clears any temporary data stored directly in the
     machine hash reference and the state hash references. Use this method
     when you want to reuse your state machine. Returns the DFA::Rules
     object.
@@ -649,7 +656,7 @@ Authors
     <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
 
 Copyright and License
-    Copyright (c) 2004 Kineticode, Inc. All Rights Reserved.
+    Copyright (c) 2004-2005 Kineticode, Inc. All Rights Reserved.
 
     This module is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.

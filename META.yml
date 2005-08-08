@@ -1,7 +1,7 @@
---- #YAML:1.0
+---
 name: FSA-Rules
-version: 0.21
-author: ~
+version: 0.22
+author: []
 abstract: Build simple rules-based state machines in Perl
 license: perl
 requires:
@@ -14,8 +14,7 @@ build_requires:
 provides:
   FSA::Rules:
     file: lib/FSA/Rules.pm
-    version: 0.21
+    version: 0.22
   FSA::State:
     file: lib/FSA/Rules.pm
-    version: 0.21
-generated_by: Module::Build version 0.26
+generated_by: Module::Build version 0.2702
