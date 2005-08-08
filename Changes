@@ -1,5 +1,7 @@
 Revision history for Perl extension FSA::Rules.
 
+0.23
+
 0.22  2005-08-08T17:10:00
       - Calling reset() now resets the "done" flag to undef unless "done"
         is set to a code reference. Reported by Xavier Caron.
