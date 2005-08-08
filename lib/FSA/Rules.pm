@@ -271,7 +271,7 @@ sub new {
     my $self = bless {}, $class;
     my $params = ref $_[0] ? shift : {};
     my $fsa = $machines{$self} = {
-        done   => sub { return },
+        done   => undef,
         notes  => {},
         stack  => [],
         table  => {},
@@ -614,7 +614,7 @@ reference should expect the FSA::Rules object passed in as its only argument.
 Note that this varies from the pattern for state actions, which should expect
 the relevant FSA::State object to be passed as the argument. Call the
 C<state()> method on th FSA::Rules object if you want the current state in
-your done code reference.
+your C<done> code reference.
 
 This method can be useful for checking to see if your state engine is done
 running, and calling C<switch()> when it isn't. States can set it to a true
@@ -646,17 +646,22 @@ it's, uh, done.
 
 Although you could just use the C<run()> method if you wanted to do that.
 
+Note that C<done> will be reset to C<undef> by a call to C<reset()> when it's
+not a code reference. If it I<is> a code reference, you need to be sure to
+write it in such a way that it knows that things have been reset (by examining
+states, for example, all of which will have been removed by C<reset()>).
+
 =cut
 
 sub done {
     my $self = shift;
     my $fsa = $machines{$self};
     if (@_) {
-        my $done = shift;
-        $fsa->{done} = ref $done eq 'CODE' ? $done : sub { $done };
+        $fsa->{done} = shift;
         return $self;
     }
     my $code = $fsa->{done};
+    return $code unless ref $code eq 'CODE';
     return $code->($self);
 }
 
@@ -717,10 +722,11 @@ sub run {
 
   $fsa->reset;
 
-The C<reset()> method clears the stack and notes and sets the current state to
-C<undef>. Also clears any temporary data stored directly in the machine hash
-reference and the state hash references. Use this method when you want to
-reuse your state machine. Returns the DFA::Rules object.
+The C<reset()> method clears the stack and notes, sets the current state to
+C<undef>, and sets C<done> to C<undef> (unless C<done> is a code reference).
+Also clears any temporary data stored directly in the machine hash reference
+and the state hash references. Use this method when you want to reuse your
+state machine. Returns the DFA::Rules object.
 
   my $fsa = FSA::Rules->new(@state_machine);
   $fsa->done(sub {$done});
@@ -737,6 +743,7 @@ sub reset {
     my $fsa = $machines{$self};
     $fsa->{current} = undef;
     $fsa->{notes} = {};
+    $fsa->{done} = undef unless ref $fsa->{done} eq 'CODE';
     @{$fsa->{stack}} = ();
     for my $state ($self->states) {
         @{$states{$state}->{index}} = ();
