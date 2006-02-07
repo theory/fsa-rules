@@ -1,6 +1,8 @@
 Revision history for Perl extension FSA::Rules.
 
 0.23
+      - Fixed some typos.
+      - Added DESTROY() methods to prevent memory leaks.
 
 0.22  2005-08-08T17:10:00
       - Calling reset() now resets the "done" flag to undef unless "done"

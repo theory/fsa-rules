@@ -65,12 +65,12 @@ and what state you want to go to. Each state may optionally define actions
 that are triggered upon entering the state, after entering the state, and upon
 exiting the state. They may also define rules for switching to other states,
 and these rules may specify the execution of switch-specific actions. All
-actions are defined in terms of anonymous subroutines that should expect the
-FSA::Rules object itself to be passed as the sole argument.
+actions are defined in terms of anonymous subroutines that should expect an
+FSA::State object itself to be passed as the sole argument.
 
 FSA::Rules objects and the FSA::State objects that make them up are all
 implemented as empty hash references. This design allows the action
-subroutines can use the FSA::State object passed as the sole argument, as well
+subroutines to use the FSA::State object passed as the sole argument, as well
 as the FSA::Rules object available via its C<machine()> method, to stash data
 for other states to access, without the possibility of interfering with the
 state or the state machine itself.
@@ -121,9 +121,9 @@ this parameter if you want to use a subclass of FSA::State.
 =back
 
 All other parameters define the state table, where each key is the name of a
-state and the following hash reference defines the state, its actions and its
+state and the following hash reference defines the state, its actions, and its
 switch rules. These state specifications will be converted to FSA::State
-objects available via the C<state()> method. The first state parameter is
+objects available via the C<states()> method. The first state parameter is
 considered to be the start state; call the C<start()> method to automatically
 enter that state.
 
@@ -138,9 +138,9 @@ The supported keys in the state definition hash references are:
 
 Optional. A code reference or array reference of code references. These will
 be executed when entering the state, after any switch actions defined by the
-C<rules> of the previous state. The FSA::State object which the state for
-which the C<on_enter> actions are defined will be passed to each code
-reference as the sole argument.
+C<rules> of the previous state. The FSA::State for which the C<on_enter>
+actions are defined will be passed to each code reference as the sole
+argument.
 
 =item do
 
@@ -149,9 +149,8 @@ reference as the sole argument.
 
 Optional. A code reference or array reference of code references. These are
 the actions to be taken while in the state, and will execute after any
-C<on_enter> actions. The FSA::State object for the state for which the C<do>
-actions are defined will be passed to each code reference as the sole
-argument.
+C<on_enter> actions. The FSA::State object for which the C<do> actions are
+defined will be passed to each code reference as the sole argument.
 
 =item on_exit
 
@@ -160,9 +159,8 @@ argument.
 
 Optional. A code reference or array reference of code references. These will
 be executed when exiting the state, before any switch actions (defined by
-C<rules>). The FSA::State object for the state for which the C<on_exit>
-actions are defined will be passed to each code reference as the sole
-argument.
+C<rules>). The FSA::State object for which the C<on_exit> actions are defined
+will be passed to each code reference as the sole argument.
 
 =item rules
 
@@ -175,7 +173,8 @@ been set to a true value. So for the sake of efficiency it's worthwhile to
 specify the switch rules most likely to evaluate to true before those more
 likely to evaluate to false.
 
-Rules are best specified as hash references with the following keys:
+Rules themselves are best specified as hash references with the following
+keys:
 
 =over
 
@@ -197,7 +196,7 @@ those aren't really rules, are they?).
 
 An optional message that will be added to the current state when the rule
 specified by the C<rule> parameter evaluates to true. The message will also be
-used to label switch labels in the output of the C<graph()> method.
+used to label switches in the output of the C<graph()> method.
 
 =item action
 
@@ -217,11 +216,11 @@ A couple of examples:
           rule => 1
       },
       bar => {
-          rule => \&goto_bar,
+          rule    => \&goto_bar,
           message => 'Have we got a bar?',
       },
       yow => {
-          rule => \&goto_yow,
+          rule    => \&goto_yow,
           message => 'Yow!',
           action  => [ \&action_one, \&action_two],
       }
@@ -320,8 +319,9 @@ sub new {
                 my $rule = shift @$exec;
                 my $message;
                 if (ref $rule eq 'HASH') {
-                    $self->_croak(qq{In rule "$state", state "$key":  you must supply a rule.})
-                      unless exists $rule->{rule};
+                    $self->_croak(
+                        qq{In rule "$state", state "$key": you must supply a rule.}
+                    ) unless exists $rule->{rule};
                     $exec = ref $rule->{action} eq 'ARRAY'
                       ? $rule->{action}
                       : [$rule->{action}]
@@ -450,6 +450,8 @@ sub curr_state {
     return $state;
 }
 
+##############################################################################
+
 =head3 state
 
 Deprecated alias for C<curr_state()>. This method will issue a warning and
@@ -460,8 +462,9 @@ instead.
 
 sub state {
     require Carp;
-    Carp::carp "The state() method has been deprecated. Use curr_state() "
-        . "instead";
+    Carp::carp(
+        'The state() method has been deprecated. Use curr_state() instead'
+    );
     shift->curr_state(@_);
 }
 
@@ -529,12 +532,13 @@ sub states {
 Checks the switch rules of the current state and switches to the first new
 state for which a rule returns a true value. The evaluation of switch rules
 short-circuits to switch to the first state for which a rule evaluates to a
-true value unless the C<strict> attribute is set to a true value. If <strict>
-is set to a true value, I<all> rules will be evaluated, and if more than one
-returns a true statement, an exception will be thrown. This approach guarntees
-that every attempt to switch from one state to another will have one and only
-one possible destination state to which to switch, thus satisfying the DFA
-pattern.
+true value unless the C<strict> attribute is set to a true value.
+
+If <strict> is set to a true value, I<all> rules will be evaluated, and if
+more than one returns a true statement, an exception will be thrown. This
+approach guarntees that every attempt to switch from one state to another will
+have one and only one possible destination state to which to switch, thus
+satisfying the DFA pattern.
 
 All arguments passed to C<try_switch> will be passed to the switch rule code
 references as inputs. If a switch rule evaluates to true and there are
@@ -613,8 +617,8 @@ called without arguments and have I<its> return value returned. A code
 reference should expect the FSA::Rules object passed in as its only argument.
 Note that this varies from the pattern for state actions, which should expect
 the relevant FSA::State object to be passed as the argument. Call the
-C<state()> method on th FSA::Rules object if you want the current state in
-your C<done> code reference.
+C<curr_state()> method on th FSA::Rules object if you want the current state
+in your C<done> code reference.
 
 This method can be useful for checking to see if your state engine is done
 running, and calling C<switch()> when it isn't. States can set it to a true
@@ -624,7 +628,7 @@ that evaluates "done-ness" itself. Something like this:
   my $fsa = FSA::Rules->new(
       foo => {
           do    => { $_[0]->machine->done(1) if ++$_[0]->{count} >= 5 },
-          rules => [ do => 1 ],
+          rules => [ foo => 1 ],
       }
   );
 
@@ -681,9 +685,8 @@ true, an exception will be thrown.
 
 sub strict {
     my $self = shift;
-    my $fsa = $machines{$self};
-    return $fsa->{strict} unless @_;
-    $fsa->{strict} = shift;
+    return $machines{$self}->{strict} unless @_;
+    $machines{$self}->{strict} = shift;
     return $self;
 }
 
@@ -781,7 +784,6 @@ sub notes {
     my $self = shift;
     my $fsa = $machines{$self};
     return $fsa->{notes} unless @_;
-    return $self->{notes} unless @_;
     my $key = shift;
     return $fsa->{notes}{$key} unless @_;
     $fsa->{notes}{$key} = shift;
@@ -857,13 +859,13 @@ corresponding FSA::State objects.
 
 A sample state:
 
- [
-     some_state,
-     {
-         result  => 7,
-         message => 'A human readable message'
-     }
- ]
+  [
+      some_state,
+      {
+          result  => 7,
+          message => 'A human readable message'
+      }
+  ]
 
 =cut
 
@@ -883,25 +885,23 @@ unless your states are storing references in their C<result>s or C<message>s
 For example, if your state machine ran for only three states, the output may
 resemble the following:
 
- print $fsa->stacktrace;
+  State: foo
+  {
+    message => 'some message',
+    result => 'a'
+  }
 
-State: foo
-{
-  message => 'some message',
-  result => 'a'
-}
+  State: bar
+  {
+    message => 'another message',
+    result => [0, 1, 2]
+  }
 
-State: bar
-{
-  message => 'another message',
-  result => [0, 1, 2]
-}
-
-State: bar
-{
-  message => 'and yet another message',
-  result => 2
-}
+  State: bar
+  {
+    message => 'and yet another message',
+    result => 2
+  }
 
 =cut
 
@@ -946,25 +946,26 @@ C<Text::Wrap> module.
 
 Each edge on the graph has a "label." If the rules for a given state were
 specified as hash references in the call to C<new()>, the C<message> key will
-used as the label; otherwise the label is blank. When used as labels, messages
-are wrapped in order to make labels fit better. The default maximum line length
-is 25. However, you may set a different wrap length using this parameter.
+be used as the label; otherwise the label is blank. When used as labels,
+messages are wrapped in order to make labels fit better. The default maximum
+line length is 25. However, you may set a different line length using this
+parameter.
 
-B<Note:> By default, text wrapping for graphs is disabled.  You must
-specifically state which text you want wrapped with either the C<wrap_nodes> or
+B<Note:> By default, text wrapping for graphs is disabled. You must explicitly
+specify what text you want wrapped with either the C<wrap_nodes> or
 C<wrap_labels> parameters.
 
 =item wrap_nodes
 
 This parameter, if set to true, will wrap the node text.
 
-Due to an obscure bug that has been difficult to track down, this sometimes
-causes graphs to not display properly.  Use with caution.
+Due to an obscure bug that has been difficult to track down, this parameter
+sometimes causes graphs to not display properly. Use with caution.
 
 =item wrap_labels
 
-This parameter, if set to true, will wrap the label text.  This property
-is always safe to use.
+This parameter, if set to true, will wrap the label text. This property is
+always safe to use.
 
 =back
 
@@ -1005,6 +1006,21 @@ sub graph {
 }
 
 ##############################################################################
+
+=head3 DESTROY
+
+This method cleans up an FSA::Rules object's internal data when it is released
+from memory. In general, you don't have to worry about the C<DESTROY()> method
+unless you're subclassing FSA::Rules. In that case, if you implement youre own
+C<DESTROY()> method, just be sure to call C<SUPER::DESTROY()> to preven memory
+leaks.
+
+=cut
+
+sub DESTROY { delete $machines{+shift}; }
+
+##############################################################################
+
 # Private error handler.
 sub _croak {
     shift;
@@ -1021,13 +1037,15 @@ package FSA::State;
 FSA::State objects represent individual states in a state machine. They are
 passed as the first argument to state actions, where their methods can be
 called to handle various parts of the processing, set up messages and results,
-or access the state machine object itself. Like FSA::Rules objects, FSA::State
-objects are empty hashes, so you can feel free to stash data in them. But note
-that each state object is independent of all others, so if you want to stash
-data for other states to access, you'll likely have to stash it in the state
-machine object (in its hash implementation or via the C<notes()> method), or
-retrieve other states from the state machine using its C<states()> method
-and then access its hash data directly.
+or access the state machine object itself.
+
+Like FSA::Rules objects, FSA::State objects are empty hashes, so you can feel
+free to stash data in them. But note that each state object is independent of
+all others, so if you want to stash data for other states to access, you'll
+likely have to stash it in the state machine object (in its hash
+implementation or via the C<notes()> method), or retrieve other states from
+the state machine using its C<states()> method and then access their hash data
+directly.
 
 =head2 Constructor
 
@@ -1042,8 +1060,10 @@ directly, but by FSA::Rules.
 
 sub new {
     my $class = shift;
-    return bless {@_}, $class
+    return bless {@_} => $class;
 }
+
+##############################################################################
 
 =head2 Instance Methods
 
@@ -1103,7 +1123,8 @@ sub result {
     my $self = shift;
     return $self->_state_slot('result') unless @_;
     # XXX Yow!
-    $machines{$self->machine}->{stack}[$states{$self}->{index}[-1]][1]{result} = shift;
+    $machines{$self->machine}->{stack}[$states{$self}->{index}[-1]][1]{result}
+        = shift;
     return $self;
 }
 
@@ -1131,8 +1152,8 @@ This is a useful method to store messages on a per-state basis. Anything can
 be stored in the message slot. Each time the state is entered, it gets a new
 message slot. Call C<message()> without arguments in a scalar context to get
 the current message; call it without arguments in an array context to get all
-of the reults for the state for each time it has been entered into, from first
-to last. The contents of each message slot can also be viewed in a
+of the messages for the state for each time it has been entered into, from
+first to last. The contents of each message slot can also be viewed in a
 C<stacktrace> or C<raw_stacktrace>.
 
 There is no difference between the interface of this method and that of the
@@ -1145,7 +1166,8 @@ sub message {
     my $self = shift;
     return $self->_state_slot('message') unless @_;
     # XXX Yow!
-    $machines{$self->machine}->{stack}[$states{$self}->{index}[-1]][1]{message} = shift;
+    $machines{$self->machine}->{stack}[$states{$self}->{index}[-1]][1]{message}
+        = shift;
     return $self;
 }
 
@@ -1187,8 +1209,8 @@ sub done       { shift->machine->done(@_) }
 
 =head3 enter
 
-Executes all of the C<on_enter> actions. Called by FSA::Rules's C<state()>
-method, and not intended to be called directly.
+Executes all of the C<on_enter> actions. Called by FSA::Rules's
+C<curr_state()> method, and not intended to be called directly.
 
 =cut
 
@@ -1203,8 +1225,8 @@ sub enter {
 
 =head3 do
 
-Executes all of the C<do>. Called by FSA::Rules's C<state()> method, and not
-intended to be called directly.
+Executes all of the C<do> actions. Called by FSA::Rules's C<curr_state()>
+method, and not intended to be called directly.
 
 =cut
 
@@ -1219,7 +1241,7 @@ sub do {
 
 =head3 exit
 
-Executes all of the C<on_exit> actions. Called by FSA::Rules's C<state()>
+Executes all of the C<on_exit> actions. Called by FSA::Rules's C<curr_state()>
 method, and not intended to be called directly.
 
 =cut
@@ -1232,6 +1254,21 @@ sub exit {
 }
 
 ##############################################################################
+
+=head3 DESTROY
+
+This method cleans up an FSA::State object's internal data when it is released
+from memory. In general, you don't have to worry about the C<DESTROY()> method
+unless you're subclassing FSA::State. In that case, if you implement youre own
+C<DESTROY()> method, just be sure to call C<SUPER::DESTROY()> to preven memory
+leaks.
+
+=cut
+
+sub DESTROY { delete $states{+shift}; }
+
+##############################################################################
+
 # Used by message() and result() to get messages and results from the stack.
 
 sub _state_slot {
@@ -1284,7 +1321,7 @@ Curtis "Ovid" Poe <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
 
 =head1 Copyright and License
 
-Copyright (c) 2004-2005 Kineticode, Inc. All Rights Reserved.
+Copyright (c) 2004-2006 Kineticode, Inc. All Rights Reserved.
 
 This module is free software; you can redistribute it and/or modify it under the
 same terms as Perl itself.
