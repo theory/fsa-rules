@@ -1,5 +1,7 @@
 Revision history for Perl extension FSA::Rules.
 
+0.24
+
 0.23  2006-02-07T05:18:26
       - Fixed some typos.
       - Added DESTROY() methods to prevent memory leaks.

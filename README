@@ -57,6 +57,7 @@ Description
 
 Class Interface
   Constructor
+
     new
 
       my $fsa = FSA::Rules->new(
@@ -225,6 +226,7 @@ Class Interface
 
 Instance Interface
   Instance Methods
+
     start
 
       my $state = $fsa->start;
@@ -582,6 +584,7 @@ FSA::State Interface
     access their hash data directly.
 
   Constructor
+
     new
 
       my $state = FSA::State->new;
@@ -590,6 +593,7 @@ FSA::State Interface
     called directly, but by FSA::Rules.
 
   Instance Methods
+
     name
 
       my $name = $state->name;
@@ -709,7 +713,6 @@ FSA::State Interface
 
 To Do
     Factor FSA::Class into a separate file.
-
 Bugs
     Please send bug reports to <bug-fsa-rules@rt.cpan.org>.
 
