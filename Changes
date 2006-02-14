@@ -1,6 +1,8 @@
 Revision history for Perl extension FSA::Rules.
 
 0.24
+      - Added newline to the 'game_over' state in the synopsis. Reported
+        by Chris Dolan.
 
 0.23  2006-02-07T05:18:26
       - Fixed some typos.
