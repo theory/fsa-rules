@@ -1021,8 +1021,8 @@ sub graph {
     my $machine = clone($machines{$self}->{graph});
     my $graph = GraphViz->new(@_);
     while (my ($state, $definition) = splice @$machine => 0, 2) {
-        my $node = $params->{wrap_nodes} 
-            ? wrap('','',$state) 
+        my $node = $params->{wrap_nodes}
+            ? wrap('','',$state)
             : $state;
         $graph->add_node($node);
         next unless exists $definition->{rules};
