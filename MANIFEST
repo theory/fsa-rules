@@ -11,3 +11,4 @@ t/pingpong.t
 t/pod-coverage.t
 t/pod.t
 t/state.t
+t/storable.t

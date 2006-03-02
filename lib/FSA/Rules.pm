@@ -75,6 +75,35 @@ as the FSA::Rules object available via its C<machine()> method, to stash data
 for other states to access, without the possibility of interfering with the
 state or the state machine itself.
 
+=head2 Serialization
+
+As of version 0.24, FSA::Rules supports serialization by L<Storable|Storable>
+2.05 and later. In other words, FSA::Rules can function as a persistent state
+machine.
+
+However, FSA::Rules stores data outside of FSA::Rules objects, in private data
+structures inside the FSA::Rules module itself. Therefore, unless you want to
+clone your FSA::Rules object, you must let it fall out of scope after you
+serialize it, so that its data will be cleared from memory. Otherwise, if you
+freeze and thaw an FSA::Rules object in a single process without C<undef>ing
+the original, there will be I<two> copies of the object stored by FSA::Rules.
+
+So how does it work? Because the rules are defined as code references, you
+must use Storable 2.05 or later and set its C<$Deparse> and C<$Eval> variables
+to true values:
+
+  use Storable qw(freeze thaw);
+
+  local $Storable::Deparse = 1;
+  local $Storable::Eval    = 1;
+
+  my $frozen = freeze($fsa);
+  $fsa = thaw($frozen);
+
+The only caveat is that, while Storable can serialize code references, it
+doesn't properly reference closure variables. So if your rules code references
+are closures, you'll have to serialize the data that they refer to yourself.
+
 =cut
 
 ##############################################################################
@@ -329,10 +358,12 @@ sub new {
                     $message = $rule->{message} if exists $rule->{message};
                     $rule    = $rule->{rule};
                 }
-                if (ref $rule ne 'CODE' ) {
-                    my $val = $rule;
-                    $rule = sub { $val };
-                }
+                # Used to convert a raw value to a code reference here, but as
+                # it ended up as a closure and these don't serialize very
+                # well, I pulled it out. Now try_switch has to check to see if
+                # a rule is a literal value each time it's called. This
+                # actually makes it faster for literal values, but a little
+                # slower for code references.
 
                 push @rules, {
                     state   => $fsa->{table}{$state},
@@ -561,7 +592,7 @@ sub try_switch {
     my $next;
     while (my $rule = shift @rules) {
         my $code = $rule->{rule};
-        next unless $code->($state, @_);
+        next unless ref $code eq 'CODE' ? $code->($state, @_) : $code;
         $fsa->{exec} = $rule->{exec};
         $state->message($rule->{message}) if defined $rule->{message};
         $next = $self->curr_state($rule->{state});
@@ -569,7 +600,11 @@ sub try_switch {
     }
 
     if (@rules && $self->strict) {
-        if (my @new = grep { my $c = $_->{rule}; $c->($state, @_) } @rules) {
+        if (my @new = grep {
+                my $c = $_->{rule};
+                ref $c eq 'CODE' ? $c->( $state, @_ ) : $c
+            } @rules
+        ) {
             $self->_croak(
                 'Attempt to switch from state "', $state->name,
                 '" improperly found multiple possible destination states: "',
@@ -1026,6 +1061,41 @@ sub _croak {
     shift;
     require Carp;
     Carp::croak(@_);
+}
+
+##############################################################################
+
+=begin comment
+
+Let's just keep the STORABLE methods hidden. They should just magically work.
+
+=head3 STORABLE_freeze
+
+=cut
+
+sub STORABLE_freeze {
+    my ($self, $clone) = @_;
+    return if $clone;
+    my $fsa = $machines{$self};
+    return ( $self, [ { %$self }, $fsa, @states{ @{ $fsa->{ord} } } ] );
+}
+
+##############################################################################
+
+=head3 STORABLE_thaw
+
+=end comment
+
+=cut
+
+sub STORABLE_thaw {
+    my ($self, $clone, $junk, $data) = @_;
+    return if $clone;
+    %{ $self }                  = %{ shift @$data };
+    my $fsa                     = shift @$data;
+    $machines{ $self }          = $fsa;
+    @states{ @{ $fsa->{ord} } } = @{ $data };
+    return $self;
 }
 
 ##############################################################################

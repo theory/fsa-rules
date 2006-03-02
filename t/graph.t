@@ -5,10 +5,10 @@
 use strict;
 use Test::More;
 
-BEGIN { 
+BEGIN {
     eval "use GraphViz";
-    plan $@ 
-        ? (skip_all => "GraphViz cannot be loaded.") 
+    plan $@
+        ? (skip_all => "GraphViz cannot be loaded.")
         #: ('no_plan');
         : (tests => 10);
     use_ok 'FSA::Rules' or die;
