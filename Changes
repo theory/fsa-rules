@@ -1,6 +1,6 @@
 Revision history for Perl extension FSA::Rules.
 
-0.24
+0.24  2006-03-03T00:06:23
       - Added newline to the 'game_over' state in the synopsis. Reported
         by Chris Dolan.
       - FSA::Rules is now serializable via Storable. Suggested by Aaron
