@@ -303,13 +303,14 @@ sub new {
         notes  => {},
         stack  => [],
         table  => {},
+        self   => $self,
         graph  => clone(\@_),
     };
 
     $params->{state_class} ||= 'FSA::State';
     while (@_) {
         my $state = shift;
-        my $def = shift;
+        my $def   = shift;
         $self->_croak(qq{The state "$state" already exists})
           if exists $fsa->{table}{$state};
 
@@ -325,7 +326,7 @@ sub new {
         # Create the state object and cache the state data.
         my $obj = $params->{state_class}->new;
         $def->{name} = $state;
-        $def->{machine} = $self;
+        $def->{machine} = "$self";
         $fsa->{table}{$state} = $obj;
         push @{$fsa->{ord}}, $obj;
         $states{$obj} = $def;
@@ -1077,7 +1078,7 @@ sub STORABLE_freeze {
     my ($self, $clone) = @_;
     return if $clone;
     my $fsa = $machines{$self};
-    return ( $self, [ { %$self }, $fsa, @states{ @{ $fsa->{ord} } } ] );
+    return ( "$self", [ { %$self }, $fsa, @states{ @{ $fsa->{ord} } } ] );
 }
 
 ##############################################################################
@@ -1089,12 +1090,13 @@ sub STORABLE_freeze {
 =cut
 
 sub STORABLE_thaw {
-    my ($self, $clone, $junk, $data) = @_;
+    my ($self, $clone, $addr, $data) = @_;
     return if $clone;
     %{ $self }                  = %{ shift @$data };
     my $fsa                     = shift @$data;
     $machines{ $self }          = $fsa;
-    @states{ @{ $fsa->{ord} } } = @{ $data };
+    $addr                       = "$self";
+    @states{ @{ $fsa->{ord} } } = map { $_->{machine} = $addr; $_ } @$data;
     return $self;
 }
 
@@ -1157,7 +1159,7 @@ Returns the FSA::Rules object for which the state was defined.
 
 =cut
 
-sub machine { return $states{shift()}->{machine} }
+sub machine { $machines{ $states{shift()}->{machine} }->{self} }
 
 ##############################################################################
 

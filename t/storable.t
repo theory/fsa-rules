@@ -29,7 +29,6 @@ is $fsa->{count}, 3,
     '... And it should have run through the proper number of iterations.';
 
 ok my $frozen = freeze($fsa), 'Freeze the FSA object';
-undef $fsa;
 ok $fsa = thaw($frozen), 'Thaw the FSA object';
 isa_ok $fsa, 'FSA::Rules', 'The thawed object';
 is $fsa->{count}, 3,
