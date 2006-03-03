@@ -326,7 +326,7 @@ sub new {
         # Create the state object and cache the state data.
         my $obj = $params->{state_class}->new;
         $def->{name} = $state;
-        $def->{machine} = "$self";
+        $def->{machine} = $self;
         $fsa->{table}{$state} = $obj;
         push @{$fsa->{ord}}, $obj;
         $states{$obj} = $def;
@@ -1053,6 +1053,12 @@ leaks.
 
 =cut
 
+# This method deletes the record from %machines, which has a reference to each
+# state, so those are deleted too. Each state refers back to the FSA::Rules
+# object itself, so as each of them is destroyed, it's removed from %states
+# and the FSA::Rules object gets all of its references defined in this file
+# freed, too. No circular references, so no problem.
+
 sub DESTROY { delete $machines{+shift}; }
 
 ##############################################################################
@@ -1078,7 +1084,7 @@ sub STORABLE_freeze {
     my ($self, $clone) = @_;
     return if $clone;
     my $fsa = $machines{$self};
-    return ( "$self", [ { %$self }, $fsa, @states{ @{ $fsa->{ord} } } ] );
+    return ( $self, [ { %$self }, $fsa, @states{ @{ $fsa->{ord} } } ] );
 }
 
 ##############################################################################
@@ -1090,13 +1096,12 @@ sub STORABLE_freeze {
 =cut
 
 sub STORABLE_thaw {
-    my ($self, $clone, $addr, $data) = @_;
+    my ($self, $clone, $junk, $data) = @_;
     return if $clone;
     %{ $self }                  = %{ shift @$data };
     my $fsa                     = shift @$data;
     $machines{ $self }          = $fsa;
-    $addr                       = "$self";
-    @states{ @{ $fsa->{ord} } } = map { $_->{machine} = $addr; $_ } @$data;
+    @states{ @{ $fsa->{ord} } } = @$data;
     return $self;
 }
 
@@ -1159,7 +1164,7 @@ Returns the FSA::Rules object for which the state was defined.
 
 =cut
 
-sub machine { $machines{ $states{shift()}->{machine} }->{self} }
+sub machine { $states{shift()}->{machine} }
 
 ##############################################################################
 
