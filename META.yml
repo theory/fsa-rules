@@ -1,18 +1,14 @@
 ---
 name: FSA-Rules
-version: 0.24
+version: 0.25
 author:
-  - >-
+  - |-
     David Wheeler <david@kineticode.com>
-    
-    Curtis "Ovid" Poe <eop_divo_sitruc@yahoo.com> (reverse the name to email
-    him)
+    Curtis "Ovid" Poe <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
 abstract: Build simple rules-based state machines in Perl
 license: perl
 resources:
   license: http://dev.perl.org/licenses/
-requires:
-  Clone: 0.15
 build_requires:
   Test::Simple: 0.17
 recommends:
@@ -22,10 +18,10 @@ recommends:
 provides:
   FSA::Rules:
     file: lib/FSA/Rules.pm
-    version: 0.24
+    version: 0.25
   FSA::State:
     file: lib/FSA/Rules.pm
-generated_by: Module::Build version 0.2707
+generated_by: Module::Build version 0.2801
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2
