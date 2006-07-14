@@ -160,15 +160,15 @@ The supported keys in the state definition hash references are:
 
 =over
 
-=item description
+=item label
 
-  description => 'Do we have a username?',
-  description => 'Create a new user',
+  label => 'Do we have a username?',
+  label => 'Create a new user',
 
-A description of the state. It might be the question that is being asked
-within the state, the answer to which determins which rule will trigger the
-switch to the next state. Or it might merely describe what's happening in the
-state.
+A label for the state. It might be the question that is being asked within the
+state (think decsision tree), the answer to which determins which rule will
+trigger the switch to the next state. Or it might merely describe what's
+happening in the state.
 
 =item on_enter
 
@@ -979,70 +979,95 @@ graphical representations of the complete rules engine. The parameters to
 C<graph()> are all those supported by the GraphViz constructor; consult the
 L<GraphViz|GraphViz> documentation for details.
 
-An optional hash ref of parameters may be passed as the first argument to
-C<graph()>. The supported parameters are:
+Each node in the graph represents a single state. The label for each node in
+the graph will be either the state label or if there is no lable, the state
+name.
+
+Each edge in the graph represents a rule that defines the relationship between
+two states. If a rule is specified as a hash reference, the C<message> key
+will be used as the edge label; otherwise the label will be blank.
+
+An optional hash reference of parameters may be passed as the first argument
+to C<graph()>. The supported parameters are:
 
 =over
 
-=item text_wrap
+=item with_state_name
 
-The text wrap length for graphs. There's a lot of text on the graph. This
-property will set the wrap length for all text to the given length using the
-C<Text::Wrap> module.
-
-Each edge on the graph has a "label." If the rules for a given state were
-specified as hash references in the call to C<new()>, the C<message> key will
-be used as the label; otherwise the label is blank. When used as labels,
-messages are wrapped in order to make labels fit better. The default maximum
-line length is 25. However, you may set a different line length using this
-parameter.
-
-B<Note:> By default, text wrapping for graphs is disabled. You must explicitly
-specify what text you want wrapped with either the C<wrap_nodes> or
-C<wrap_labels> parameters.
+This parameter, if set to true, prepends the name of the state and two
+newlines to the label for each node. If a state has no lable, then the state
+name is simply used, regardless.
 
 =item wrap_nodes
 
-This parameter, if set to true, will wrap the node text.
+=item wrap_node_labels
+
+This parameter, if set to true, will wrap the node label text. This can be
+useful if the label is long. The line length is determined by the
+C<wrap_length> parameter. Defaults to false.
+
+=item wrap_edge_labels
 
 =item wrap_labels
 
-This parameter, if set to true, will wrap the label text.
+This parameter, if set to true, will wrap the edge text. This can be useful if
+the rule message is long. The line length is determined by the C<wrap_length>
+parameter. Defaults to false C<wrap_labels> is deprecated and will be removed
+in a future version.
+
+=item text_wrap
+
+=item wrap_length
+
+The line length to use for wrapping text when C<wrap_nodes> or C<wrap_labels>
+is set to true. C<text_wrap> is deprecated and will be removed in a future
+version. Defaults to 25.
 
 =back
 
-B<Note:> If C<GraphViz> is not available on your system, this method will warn
-and return.
+B<Note:> If either C<GraphViz> or C<Text::Wrap> is not available on your
+system, C<graph()> will simply will warn and return.
 
 =cut
 
 sub graph {
     my $self = shift;
+    my $params = ref $_[0] ? shift : {};
+
+    # Handle backwards compatibility.
+    $params->{wrap_node_labels} = $params->{wrap_nodes}
+        unless exists $params->{wrap_node_labels};
+    $params->{wrap_edge_labels} = $params->{wrap_labels}
+        unless exists $params->{wrap_edge_labels};
+    $params->{wrap_length} = $params->{text_wrap}
+        unless exists $params->{wrap_length};
+
     eval "use GraphViz 2.00; use Text::Wrap";
     if ($@) {
         warn "Cannot create graph object: $@";
         return;
     }
-    my $params = ref $_[0] ? shift : {};
-    $Text::Wrap::columns = $params->{text_wrap} || 25;
+
+    local $Text::Wrap::columns = $params->{wrap_length} || 25;
     my $machine = clone($machines{$self}->{graph});
     my $graph = GraphViz->new(@_);
     while (my ($state, $definition) = splice @$machine => 0, 2) {
-        my $label = $definition->{description}
-            ? "$state\n\n$definition->{description}"
-            : $state;
+        my $label = !$definition->{label} ? $state
+            : $params->{with_state_name}  ? "$state\n\n$definition->{label}"
+            :                               $definition->{label};
+
         $graph->add_node(
             $state,
-            label => $params->{wrap_nodes} ? wrap('', '',$label) : $label,
+            label => $params->{wrap_node_labels} ? wrap('', '', $label) : $label,
         );
         next unless exists $definition->{rules};
         while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
             my @edge = ($state => $rule);
             if (ref $condition eq 'HASH' && exists $condition->{message}) {
-                my $label = $params->{wrap_labels}
-                    ? wrap('','',$condition->{message})
+                my $label = $params->{wrap_edge_labels}
+                    ? wrap('', '', $condition->{message})
                     : $condition->{message};
-                push @edge => 'label', $label;
+                push @edge, label => $label;
             }
             $graph->add_edge(@edge, decorate => 1);
         }
@@ -1165,15 +1190,15 @@ sub name { $states{shift()}->{name} }
 
 ##############################################################################
 
-=head3 description
+=head3 label
 
-  my $description = $state->description;
+  my $label = $state->label;
 
-Returns the description of the state.
+Returns the label of the state.
 
 =cut
 
-sub description { $states{shift()}->{description} }
+sub label { $states{shift()}->{label} }
 
 ##############################################################################
 

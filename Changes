@@ -8,6 +8,17 @@ Revision history for Perl extension FSA::Rules.
         the node, along with the node name.
       - Fixed the "obscure bug" with the 'wrap_nodes' parameter to the graph()
         method so that it no longer breaks graphs.
+      - Changed graph tests to use as_canon() instead of as_text(), since
+        the latter seems to vary with release of GraphViz.
+      - Add the 'with_state_name' parameter to graph() to prepend the state
+        name to the label for each node if there is a label. Otherwise the
+        label is just the state name regardless of this parameters.
+      - Changed the 'wrap_nodes' parameter to graph() to 'wrap_node_labels'.
+        The former is still supported but will be removed in a future release.
+      - Changed the 'wrap_labels' parameter to graph() to 'wrap_edge_labels'.
+        The former is still supported but will be removed in a future release.
+      - Changed the 'text_wrap' parameter to graph() to 'wrap_length'. The
+        former is still supported but will be removed in a future release.
 
 0.24  2006-03-03T00:06:23
       - Added newline to the 'game_over' state in the synopsis. Reported
