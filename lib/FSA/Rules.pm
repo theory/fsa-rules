@@ -76,7 +76,7 @@ state or the state machine itself.
 
 =head2 Serialization
 
-As of version 0.25, FSA::Rules supports serialization by L<Storable|Storable>
+As of version 0.24, FSA::Rules supports serialization by L<Storable|Storable>
 2.05 and later. In other words, FSA::Rules can function as a persistent state
 machine.
 
