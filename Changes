@@ -1,5 +1,7 @@
 Revision history for Perl extension FSA::Rules.
 
+0.26
+
 0.25  2006-07-14T18:49:53
       - Reverted "circular reference" change from previous release. It wasn't
         a circular reference after all.
