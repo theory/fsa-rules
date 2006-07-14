@@ -995,8 +995,8 @@ to C<graph()>. The supported parameters are:
 =item with_state_name
 
 This parameter, if set to true, prepends the name of the state and two
-newlines to the label for each node. If a state has no lable, then the state
-name is simply used, regardless.
+newlines to the label for each node. If a state has no label, then the state
+name is simply used, regardless. Defaults to false.
 
 =item wrap_nodes
 
@@ -1023,6 +1023,20 @@ The line length to use for wrapping text when C<wrap_nodes> or C<wrap_labels>
 is set to true. C<text_wrap> is deprecated and will be removed in a future
 version. Defaults to 25.
 
+=item node_params
+
+A hash reference of parameters to be passed to the GraphViz C<add_node()>
+method when seting up a state as a node. Only the C<label> parameter will be
+ignored. See the C<GraphViz|GraphViz/"add_node"> documentation for the list
+of supported paramters.
+
+=item edge_params
+
+A hash reference of parameters to be passed to the GraphViz C<add_node()>
+method when seting up a state as a node. See the
+C<GraphViz|GraphViz/"add_edge"> documentation for the list of supported
+paramters.
+
 =back
 
 B<Note:> If either C<GraphViz> or C<Text::Wrap> is not available on your
@@ -1034,6 +1048,12 @@ sub graph {
     my $self = shift;
     my $params = ref $_[0] ? shift : {};
 
+    eval "use GraphViz 2.00; use Text::Wrap";
+    if ($@) {
+        warn "Cannot create graph object: $@";
+        return;
+    }
+
     # Handle backwards compatibility.
     $params->{wrap_node_labels} = $params->{wrap_nodes}
         unless exists $params->{wrap_node_labels};
@@ -1042,13 +1062,12 @@ sub graph {
     $params->{wrap_length} = $params->{text_wrap}
         unless exists $params->{wrap_length};
 
-    eval "use GraphViz 2.00; use Text::Wrap";
-    if ($@) {
-        warn "Cannot create graph object: $@";
-        return;
-    }
-
+    # Set up defaults.
     local $Text::Wrap::columns = $params->{wrap_length} || 25;
+    my @node_params = %{ $params->{node_params} || {} };
+    my @edge_params = %{ $params->{edge_params} || {} };
+
+    # Iterate over the states.
     my $machine = clone($machines{$self}->{graph});
     my $graph = GraphViz->new(@_);
     while (my ($state, $definition) = splice @$machine => 0, 2) {
@@ -1058,6 +1077,7 @@ sub graph {
 
         $graph->add_node(
             $state,
+            @node_params,
             label => $params->{wrap_node_labels} ? wrap('', '', $label) : $label,
         );
         next unless exists $definition->{rules};
@@ -1069,7 +1089,7 @@ sub graph {
                     : $condition->{message};
                 push @edge, label => $label;
             }
-            $graph->add_edge(@edge, decorate => 1);
+            $graph->add_edge( @edge, @edge_params );
         }
     }
     return $graph;

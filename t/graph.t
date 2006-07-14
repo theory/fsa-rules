@@ -48,10 +48,10 @@ digraph test {
         ping [label=ping];
         end [label=end];
         pong [label=pong];
-        ping -> end [decorate=1];
-        ping -> pong [decorate=1];
-        pong -> end [decorate=1];
-        pong -> ping [decorate=1];
+        ping -> end;
+        ping -> pong;
+        pong -> end;
+        pong -> ping;
 }
 END_TEXT
 my $graph_text = $fsa->graph->as_canon;
@@ -106,10 +106,11 @@ END_TEXT
 
 $graph = $fsa->graph(
     {
-        wrap_length => 15,
+        wrap_length      => 15,
         wrap_node_labels => 1,
         wrap_edge_labels => 1,
-        with_state_name => 1,
+        with_state_name  => 1,
+        edge_params      => { decorate => 1 },
     },
     bgcolor => 'magenta',
     node    => { shape => 'circle' },
@@ -123,9 +124,10 @@ is $graph_text, $expected,
 $graph = $fsa->graph(
     {
         with_state_name => 1,
-        text_wrap => 15,
-        wrap_labels => 1,
-        wrap_nodes => 1,
+        text_wrap       => 15,
+        wrap_labels     => 1,
+        wrap_nodes      => 1,
+        edge_params     => { decorate => 1 },
     },
     bgcolor => 'magenta',
     node    => { shape => 'circle' },

@@ -19,6 +19,10 @@ Revision history for Perl extension FSA::Rules.
         The former is still supported but will be removed in a future release.
       - Changed the 'text_wrap' parameter to graph() to 'wrap_length'. The
         former is still supported but will be removed in a future release.
+      - Added the 'node_params' and 'edge_params' parameters to graph() to
+        allow greater control over how graphs are output.
+      - Edges labels no longer use lines to link them to their edges. This
+        behavior can now be handled using 'edge_params => { decorate => 1 }.
 
 0.24  2006-03-03T00:06:23
       - Added newline to the 'game_over' state in the synopsis. Reported
