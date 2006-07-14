@@ -3,7 +3,7 @@ use Module::Build;
 my $build = Module::Build->new(
     module_name => 'FSA::Rules',
     license     => 'perl',
-    requires    => { Clone => '0.15' },
+    requires    => { },
     recommends  => {
         'GraphViz'   => '2.00',
         'Text::Wrap' => 0,

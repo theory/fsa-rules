@@ -3,7 +3,6 @@ package FSA::Rules;
 # $Id$
 
 use strict;
-use Clone qw/clone/;
 $FSA::Rules::VERSION = '0.25';
 
 =begin comment
@@ -314,7 +313,6 @@ sub new {
         stack  => [],
         table  => {},
         self   => $self,
-        graph  => clone(\@_),
     };
 
     $params->{state_class} ||= 'FSA::State';
@@ -1068,26 +1066,29 @@ sub graph {
     my @edge_params = %{ $params->{edge_params} || {} };
 
     # Iterate over the states.
-    my $machine = clone($machines{$self}->{graph});
+    my $machine = $machines{$self};
     my $graph = GraphViz->new(@_);
-    while (my ($state, $definition) = splice @$machine => 0, 2) {
-        my $label = !$definition->{label} ? $state
-            : $params->{with_state_name}  ? "$state\n\n$definition->{label}"
-            :                               $definition->{label};
+    for my $state (@{ $machine->{ord} }) {
+        my $def = $states{$state};
+        my $name  = $def->{name};
+
+        my $label = !$def->{label} ? $name
+            : $params->{with_state_name}  ? "$name\n\n$def->{label}"
+            :                               $def->{label};
 
         $graph->add_node(
-            $state,
+            $name,
             @node_params,
             label => $params->{wrap_node_labels} ? wrap('', '', $label) : $label,
         );
-        next unless exists $definition->{rules};
-        while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
-            my @edge = ($state => $rule);
-            if (ref $condition eq 'HASH' && exists $condition->{message}) {
-                my $label = $params->{wrap_edge_labels}
+        next unless exists $def->{rules};
+        for my $condition (@{ $def->{rules} }) {
+            my $rule = $condition->{state}->name;
+            my @edge = ($name => $rule);
+            if ($condition->{message}) {
+                push @edge, label => $params->{wrap_edge_labels}
                     ? wrap('', '', $condition->{message})
                     : $condition->{message};
-                push @edge, label => $label;
             }
             $graph->add_edge( @edge, @edge_params );
         }

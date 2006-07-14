@@ -23,6 +23,9 @@ Revision history for Perl extension FSA::Rules.
         allow greater control over how graphs are output.
       - Edges labels no longer use lines to link them to their edges. This
         behavior can now be handled using 'edge_params => { decorate => 1 }.
+      - Removed requirement for the Clone module. This also cuts the memory
+        footprint for each rules object roughly in half, since it no longer
+        keeps a clone of the arguments to new().
 
 0.24  2006-03-03T00:06:23
       - Added newline to the 'game_over' state in the synopsis. Reported
