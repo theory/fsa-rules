@@ -93,7 +93,7 @@ ok $fsa = $CLASS->new(
     bar => {
         do    => sub {
             my $state = shift;
-            $state->message("bar has been called $counter times");
+            $state->message('bar has been called ', $counter, ' times');
             $state->result($counter++);
         },
         rules => [

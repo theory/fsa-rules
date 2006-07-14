@@ -1,6 +1,8 @@
 Revision history for Perl extension FSA::Rules.
 
 0.26
+      - The message() method now takes a list of arguments instead of a single
+        scalar. It will concatenate them all together.
 
 0.25  2006-07-14T18:49:53
       - Reverted "circular reference" change from previous release. It wasn't

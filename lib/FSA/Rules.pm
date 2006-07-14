@@ -1282,7 +1282,7 @@ sub result {
         do => sub {
             my $state = shift;
             # Do stuff...
-            $state->message("hello");
+            $state->message('hello ', $ENV{USER});
         },
         rules => [
             bad  => sub { ! shift->message },
@@ -1300,10 +1300,6 @@ of the messages for the state for each time it has been entered into, from
 first to last. The contents of each message slot can also be viewed in a
 C<stacktrace> or C<raw_stacktrace>.
 
-There is no difference between the interface of this method and that of the
-C<result()> method other than storing their values in different slots (that
-is, they don't get or set each other's values).
-
 =cut
 
 sub message {
@@ -1311,7 +1307,7 @@ sub message {
     return $self->_state_slot('message') unless @_;
     # XXX Yow!
     $machines{$self->machine}->{stack}[$states{$self}->{index}[-1]][1]{message}
-        = shift;
+        = join '', @_;
     return $self;
 }
 
