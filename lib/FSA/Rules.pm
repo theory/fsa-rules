@@ -160,6 +160,16 @@ The supported keys in the state definition hash references are:
 
 =over
 
+=item description
+
+  description => 'Do we have a username?',
+  description => 'Create a new user',
+
+A description of the state. It might be the question that is being asked
+within the state, the answer to which determins which rule will trigger the
+switch to the next state. Or it might merely describe what's happening in the
+state.
+
 =item on_enter
 
   on_enter => sub { ... }
@@ -962,7 +972,7 @@ sub stacktrace {
 =head3 graph
 
   my $graph_viz = $fsa->graph(@graph_viz_args);
-  $graph_viz = $fas->(\%params, @graph_viz_args);
+  $graph_viz = $fsa->graph(\%params, @graph_viz_args);
 
 Constructs and returns a L<GraphViz|GraphViz> object useful for generating
 graphical representations of the complete rules engine. The parameters to
@@ -976,7 +986,7 @@ C<graph()>. The supported parameters are:
 
 =item text_wrap
 
-The text wrap length for graphs.  There's a lot of text on the graph.  This
+The text wrap length for graphs. There's a lot of text on the graph. This
 property will set the wrap length for all text to the given length using the
 C<Text::Wrap> module.
 
@@ -995,13 +1005,9 @@ C<wrap_labels> parameters.
 
 This parameter, if set to true, will wrap the node text.
 
-Due to an obscure bug that has been difficult to track down, this parameter
-sometimes causes graphs to not display properly. Use with caution.
-
 =item wrap_labels
 
-This parameter, if set to true, will wrap the label text. This property is
-always safe to use.
+This parameter, if set to true, will wrap the label text.
 
 =back
 
@@ -1022,10 +1028,13 @@ sub graph {
     my $machine = clone($machines{$self}->{graph});
     my $graph = GraphViz->new(@_);
     while (my ($state, $definition) = splice @$machine => 0, 2) {
-        my $node = $params->{wrap_nodes}
-            ? wrap('','',$state)
+        my $label = $definition->{description}
+            ? "$state\n\n$definition->{description}"
             : $state;
-        $graph->add_node($node);
+        $graph->add_node(
+            $state,
+            label => $params->{wrap_nodes} ? wrap('', '',$label) : $label,
+        );
         next unless exists $definition->{rules};
         while (my ($rule, $condition) = splice @{$definition->{rules}} => 0, 2) {
             my @edge = ($state => $rule);
@@ -1153,6 +1162,18 @@ Returns the name of the state.
 =cut
 
 sub name { $states{shift()}->{name} }
+
+##############################################################################
+
+=head3 description
+
+  my $description = $state->description;
+
+Returns the description of the state.
+
+=cut
+
+sub description { $states{shift()}->{description} }
 
 ##############################################################################
 

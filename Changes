@@ -3,6 +3,11 @@ Revision history for Perl extension FSA::Rules.
 0.25
       - Reverted "circular reference" change from previous release. It wasn't
         a circular reference after all.
+      - Added a "description" attribute for rules.
+      - Updated the graph output to output the description of each rule within
+        the node, along with the node name.
+      - Fixed the "obscure bug" with the 'wrap_nodes' parameter to the graph()
+        method so that it no longer breaks graphs.
 
 0.24  2006-03-03T00:06:23
       - Added newline to the 'game_over' state in the synopsis. Reported
