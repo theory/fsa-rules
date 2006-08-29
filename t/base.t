@@ -4,7 +4,7 @@
 
 use strict;
 #use Test::More 'no_plan';
-use Test::More tests => 314;
+use Test::More tests => 316;
 
 my $CLASS;
 BEGIN {
@@ -573,7 +573,7 @@ ok $fsa = $CLASS->new(
     { strict => 1, start => 1 },
     foo => { rules => [ bar => 1 ] },
     bar => { rules => [ foo => 1, bar => 1 ] },
-), "Constuct with strict enabled and multiple possible paths";
+), 'Constuct with strict enabled and multiple possible paths';
 
 is $fsa->curr_state->name, 'foo', "... The engine should be started";
 is $fsa->strict, 1, "... Strict should be enabled";
@@ -581,7 +581,7 @@ is $fsa->switch->name, 'bar', "... The switch to 'bar' should succeed";
 eval { $fsa->try_switch };
 ok $err = $@, "... Try to switch from bar should throw an exception";
 like $err,
-  qr/Attempt to switch from state "bar" improperly found multiple possible destination states: "foo", "bar"/,
+  qr/Attempt to switch from state "bar" improperly found multiple destination states: "foo", "bar"/,
   "... And the error message should be appropriate (and verbose)";
 
 can_ok $fsa, 'at';
@@ -688,3 +688,27 @@ is $fsa->notes('goto_beta'), 1, '... Beta rule action should have executed';
 is $fsa->notes('goto_omega'), 1, '... Omega rule action should have executed';
 is $fsa->notes('goto_omega2'), 2,
   '... Second omega rule action should have executed';
+
+##############################################################################
+# Regressions!
+my $i;
+ok my $rules = FSA::Rules->new(
+    { strict => 1 },
+    login => {
+        do => sub {
+            shift->notes( num => ++$i );
+        },
+        rules => [
+            login => sub {
+                shift->notes('num') <= 2;
+            },
+            next  => sub {
+                shift->notes('num') > 2;
+            }
+        ],
+    },
+    next => { do => sub { shift->done(1) } },
+), 'Create new rules with strict and dependency on do block';
+
+ok $rules->run, '... And they should run properly.';
+

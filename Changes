@@ -3,6 +3,12 @@ Revision history for Perl extension FSA::Rules.
 0.26
       - The message() method now takes a list of arguments instead of a single
         scalar. It will concatenate them all together.
+      - Fixed bug in strict mode where the machine entered the next state
+        before it evaluated all of the rules to ensure that there were not
+        multiple destination states. Thanks to Khalil Haddad for sending
+        a script that demonstrated the issue (Ticket # 21213).
+      - Removed the word "possible" from the exception thrown in strict mode
+        where multiple destinations have been found in the rules.
 
 0.25  2006-07-14T18:49:53
       - Reverted "circular reference" change from previous release. It wasn't

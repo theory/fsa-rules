@@ -602,26 +602,27 @@ sub try_switch {
     while (my $rule = shift @rules) {
         my $code = $rule->{rule};
         next unless ref $code eq 'CODE' ? $code->($state, @_) : $code;
+
+        # Make sure that no other rules evaluate to true in strict mode.
+        if (@rules && $self->strict) {
+            if ( my @new = grep {
+                my $c = $_->{rule};
+                ref $c eq 'CODE' ? $c->( $state, @_ ) : $c
+            } @rules ) {
+                $self->_croak(
+                    'Attempt to switch from state "', $state->name, '"',
+                    ' improperly found multiple destination states: "',
+                    join('", "', map { $_->{state}->name } $rule, @new), '"'
+                );
+            }
+        }
+
+        # We're good to go.
         $fsa->{exec} = $rule->{exec};
         $state->message($rule->{message}) if defined $rule->{message};
         $next = $self->curr_state($rule->{state});
         last;
     }
-
-    if (@rules && $self->strict) {
-        if (my @new = grep {
-                my $c = $_->{rule};
-                ref $c eq 'CODE' ? $c->( $state, @_ ) : $c
-            } @rules
-        ) {
-            $self->_croak(
-                'Attempt to switch from state "', $state->name,
-                '" improperly found multiple possible destination states: "',
-                join('", "', $next->name,  map { $_->{state}->name } @new), '"'
-            );
-        }
-    }
-
     return $next;
 }
 
