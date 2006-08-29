@@ -3,7 +3,7 @@ package FSA::Rules;
 # $Id$
 
 use strict;
-$FSA::Rules::VERSION = '0.26';
+$FSA::Rules::VERSION = '0.27';
 
 =begin comment
 
