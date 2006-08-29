@@ -1,6 +1,6 @@
 Revision history for Perl extension FSA::Rules.
 
-0.26
+0.26  2006-08-29T17:44:37
       - The message() method now takes a list of arguments instead of a single
         scalar. It will concatenate them all together.
       - Fixed bug in strict mode where the machine entered the next state
