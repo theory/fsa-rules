@@ -1258,9 +1258,9 @@ This is a useful method to store results on a per-state basis. Anything can be
 stored in the result slot. Each time the state is entered, it gets a new
 result slot. Call C<result()> without arguments in a scalar context to get the
 current result; call it without arguments in an array context to get all of
-the reults for the state for each time it has been entered into, from first to
-last. The contents of each result slot can also be viewed in a C<stacktrace>
-or C<raw_stacktrace>.
+the results for the state for each time it has been entered into, from first
+to last. The contents of each result slot can also be viewed in a
+C<stacktrace> or C<raw_stacktrace>.
 
 =cut
 
