@@ -1440,6 +1440,8 @@ __END__
 
 =item Factor FSA::Class into a separate file.
 
+=item Switch to Data::Dump::Streamer for proper serialization of closures.
+
 =back
 
 =head1 Bugs
