@@ -1,6 +1,6 @@
 ---
 name: FSA-Rules
-version: 0.26
+version: 0.27
 author:
   - |-
     David Wheeler <david@kineticode.com>
@@ -18,10 +18,10 @@ recommends:
 provides:
   FSA::Rules:
     file: lib/FSA/Rules.pm
-    version: 0.26
+    version: 0.27
   FSA::State:
     file: lib/FSA/Rules.pm
-generated_by: Module::Build version 0.2805
+generated_by: Module::Build version 0.280501
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2

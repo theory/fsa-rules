@@ -26,3 +26,6 @@
 
 # Avoid build files.
 ^FSA-Rules
+
+# Avoid spelling test.
+pod-spelling.t$
