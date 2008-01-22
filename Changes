@@ -2,6 +2,7 @@ Revision history for Perl extension FSA::Rules.
 
 0.27
       - Corrected a number of typos in the POD.
+      - Added the "configure_requires" parameter to Build.PL.
 
 0.26  2006-08-29T17:44:37
       - The message() method now takes a list of arguments instead of a single
