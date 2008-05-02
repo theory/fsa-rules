@@ -1,6 +1,6 @@
 Revision history for Perl extension FSA::Rules.
 
-0.27
+0.27  2008-05-02T20:08:40
       - Corrected a number of typos in the POD.
       - Added the "configure_requires" parameter to Build.PL.
       - Added Test::Spelling to the "recommends" parameter to Build.PL and
