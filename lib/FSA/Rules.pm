@@ -1445,9 +1445,14 @@ __END__
 
 =back
 
-=head1 Bugs
+=head1 Support
 
-Please send bug reports to <bug-fsa-rules@rt.cpan.org>.
+This module is stored in an open repository at the following address:
+
+L<https://svn.kineticode.com/FSA-Rules/trunk/>
+
+Patches against SVN::Notify are welcome. Please send bug reports to
+<bug-fsa-rules@rt.cpan.org>.
 
 =head1 Authors
 
@@ -1465,7 +1470,7 @@ Curtis "Ovid" Poe <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
 
 =head1 Copyright and License
 
-Copyright (c) 2004-2006 Kineticode, Inc. All Rights Reserved.
+Copyright (c) 2004-2008 Kineticode, Inc. Some Rights Reserved.
 
 This module is free software; you can redistribute it and/or modify it under the
 same terms as Perl itself.
