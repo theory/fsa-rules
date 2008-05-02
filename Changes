@@ -3,6 +3,16 @@ Revision history for Perl extension FSA::Rules.
 0.27
       - Corrected a number of typos in the POD.
       - Added the "configure_requires" parameter to Build.PL.
+      - Added Test::Spelling to the "recommends" parameter to Build.PL and
+        updated the test to skip if Test::Spelling is not installed.
+      - The output of `stacktrace` now has has keys sorted by
+        `$Data::Dumper::Sortkeys = 1`. Not sure how or when this was turned
+        off.
+      - Added B::Deparse 0.61 to the "recommends" parameter to Build.PL, as
+        older versions can cause Storable to croak, since they don't support
+        deparsing code references. This fixes things for Perl 5.6.2, where
+        serialization is not supported.
+      - Requiring Perl 5.6.2 or greater.
 
 0.26  2006-08-29T17:44:37
       - The message() method now takes a list of arguments instead of a single

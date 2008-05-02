@@ -8,10 +8,12 @@ use Carp;
 $SIG{__DIE__} = \&Carp::confess;
 BEGIN {
     eval 'use Storable qw(freeze thaw)';
-    plan $@
-        ? (skip_all => "Storable cannot be loaded.")
-#        : ('no_plan');
-        : (tests => 12);
+    plan skip_all => 'Storable cannot be loaded.' if $@;
+
+    eval 'use B::Deparse 0.61';
+    plan skip_all => 'B::Deparse 0.61 or later cannot be loaded.' if $@;
+
+    plan tests => 12;
     use_ok 'FSA::Rules' or die;
 }
 

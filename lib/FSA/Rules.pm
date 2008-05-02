@@ -3,6 +3,7 @@ package FSA::Rules;
 # $Id$
 
 use strict;
+use 5.006_002;
 $FSA::Rules::VERSION = '0.27';
 
 =begin comment
@@ -957,7 +958,7 @@ sub stacktrace {
     local $Data::Dumper::Terse     = 1;
     local $Data::Dumper::Indent    = 1;
     local $Data::Dumper::Quotekeys = 0;
-    local $Data::Dumper::Sortkeys  = 0;
+    local $Data::Dumper::Sortkeys  = 1;
     foreach my $state (@$states) {
         $stacktrace .= "State: $state->[0]\n";
         $stacktrace .= Data::Dumper::Dumper($state->[1]);
