@@ -2,6 +2,7 @@ Revision history for Perl extension FSA::Rules.
 
 0.28
       - Added a link to the Subversion repository.
+      - Updated copyright.
 
 0.27  2008-05-02T20:08:40
       - Corrected a number of typos in the POD.
