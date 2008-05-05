@@ -1451,7 +1451,7 @@ This module is stored in an open repository at the following address:
 
 L<https://svn.kineticode.com/FSA-Rules/trunk/>
 
-Patches against SVN::Notify are welcome. Please send bug reports to
+Patches against FSA::Rules are welcome. Please send bug reports to
 <bug-fsa-rules@rt.cpan.org>.
 
 =head1 Authors
