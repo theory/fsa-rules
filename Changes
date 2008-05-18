@@ -3,6 +3,8 @@ Revision history for Perl extension FSA::Rules.
 0.28
       - Added a link to the Subversion repository.
       - Updated copyright.
+      - Removed Pod::Spelling from `Build.PL`, since the spelling test ins't
+        included in the distribution.
 
 0.27  2008-05-02T20:08:40
       - Corrected a number of typos in the POD.

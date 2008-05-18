@@ -17,7 +17,6 @@ my $build = Module::Build->new(
         'Storable'       => '2.05',
         'B::Deparse'     => '0.61',
         'Test::Pod'      => '1.20',
-        'Test::Spelling' => 0,
       },
 
 );
