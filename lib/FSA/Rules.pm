@@ -4,7 +4,7 @@ package FSA::Rules;
 
 use strict;
 use 5.006_002;
-$FSA::Rules::VERSION = '0.28';
+$FSA::Rules::VERSION = '0.29';
 
 =begin comment
 
