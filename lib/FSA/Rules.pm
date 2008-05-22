@@ -1465,14 +1465,19 @@ other than all uppercase.
 
 =end comment
 
-David Wheeler <david@kineticode.com>
-Curtis "Ovid" Poe <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
+=over
+
+=item David Wheeler <david@kineticode.com>
+
+=item Curtis "Ovid" Poe <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
+
+=back
 
 =head1 Copyright and License
 
 Copyright (c) 2004-2008 David Wheeler. Some Rights Reserved.
 
-This module is free software; you can redistribute it and/or modify it under the
-same terms as Perl itself.
+This module is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 =cut

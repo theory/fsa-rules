@@ -738,12 +738,18 @@ To Do
     Factor FSA::Class into a separate file.
     Switch to Data::Dump::Streamer for proper serialization of closures.
 
-Bugs
-    Please send bug reports to <bug-fsa-rules@rt.cpan.org>.
+Support
+    This module is stored in an open repository at the following address:
+
+    <https://svn.kineticode.com/FSA-Rules/trunk/>
+
+    Patches against FSA::Rules are welcome. Please send bug reports to
+    <bug-fsa-rules@rt.cpan.org>.
 
 Authors
-    David Wheeler <david@kineticode.com> Curtis "Ovid" Poe
-    <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
+    David Wheeler <david@kineticode.com>
+    Curtis "Ovid" Poe <eop_divo_sitruc@yahoo.com> (reverse the name to email
+    him)
 
 Copyright and License
     Copyright (c) 2004-2008 David Wheeler. Some Rights Reserved.

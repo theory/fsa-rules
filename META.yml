@@ -1,10 +1,7 @@
 ---
 name: FSA-Rules
 version: 0.28
-author:
-  - |-
-    David Wheeler <david@kineticode.com>
-    Curtis "Ovid" Poe <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
+author: []
 abstract: Build simple rules-based state machines in Perl
 license: perl
 resources:
@@ -21,7 +18,6 @@ recommends:
   GraphViz: 2.00
   Storable: 2.05
   Test::Pod: 1.20
-  Test::Spelling: 0
   Text::Wrap: 0
 provides:
   FSA::Rules:
