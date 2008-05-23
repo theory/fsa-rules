@@ -5,8 +5,8 @@ my $build = Module::Build->new(
     license            => 'perl',
     create_makefile_pl => 'passthrough',
     create_readme      => 1,
-    requires           => { perl            => '5.6.2'  },
-    configure_requires => { 'Module::Build' => '0.2701' },
+    requires           => { perl            => 5.006_002 },
+    configure_requires => { 'Module::Build' => '0.2701'  },
     build_requires     => {
         'Module::Build' => '0.2701',
         'Test::More'    => '0.17',

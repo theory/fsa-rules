@@ -1,6 +1,8 @@
 Revision history for Perl extension FSA::Rules.
 
 0.29
+      - Fixed the required Perl version number so that it can be understood
+        by older Perls (e.g., 5.5). Reported by Slaven Rezic via cpan-testers.
 
 0.28  2008-05-22T03:05:24
       - Added a link to the Subversion repository.
