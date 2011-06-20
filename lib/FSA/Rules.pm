@@ -4,17 +4,6 @@ use strict;
 use 5.006_002;
 $FSA::Rules::VERSION = '0.29';
 
-=begin comment
-
-Fake-out Module::Build. Delete if it ever changes to support =head1 headers
-other than all uppercase.
-
-=head1 NAME
-
-FSA::Rules - Build simple rules-based state machines in Perl
-
-=end comment
-
 =head1 Name
 
 FSA::Rules - Build simple rules-based state machines in Perl
@@ -1454,15 +1443,6 @@ Issues|http://github.com/theory/fsa-rules/issues/> or by sending mail to
 L<bug-FSA-Rules.cpan.org|mailto:bug-FSA-Rules.cpan.org>.
 
 =head1 Authors
-
-=begin comment
-
-Fake-out Module::Build. Delete if it ever changes to support =head1 headers
-other than all uppercase.
-
-=head1 AUTHORS
-
-=end comment
 
 =over
 
