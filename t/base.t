@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id$
-
 use strict;
 #use Test::More 'no_plan';
 use Test::More tests => 316;
