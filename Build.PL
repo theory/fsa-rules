@@ -18,6 +18,12 @@ my $build = Module::Build->new(
         'B::Deparse'     => '0.61',
         'Test::Pod'      => '1.41',
       },
-
+    meta_merge => {
+        resources => {
+            homepage   => 'http://search.cpan.org/dist/FSA-Rules/',
+            bugtracker => 'http://github.com/theory/fsa-rules/issues/',
+            repository => 'http://github.com/theory/fsa-rules/',
+        }
+    },
 );
 $build->create_build_script;

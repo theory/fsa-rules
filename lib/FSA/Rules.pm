@@ -1445,12 +1445,13 @@ __END__
 
 =head1 Support
 
-This module is stored in an open repository at the following address:
+This module is stored in an open L<GitHub
+repository|http://github.com/theory/fsa-rules/>. Feel free to fork and
+contribute!
 
-L<https://svn.kineticode.com/FSA-Rules/trunk/>
-
-Patches against FSA::Rules are welcome. Please send bug reports to
-<bug-fsa-rules@rt.cpan.org>.
+Please file bug reports via L<GitHub
+Issues|http://github.com/theory/fsa-rules/issues/> or by sending mail to
+L<bug-FSA-Rules.cpan.org|mailto:bug-FSA-Rules.cpan.org>.
 
 =head1 Authors
 
