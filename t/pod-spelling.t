@@ -17,3 +17,4 @@ prepends
 stacktrace
 Kineticode
 Storable
+cpan
