@@ -2,7 +2,7 @@
 \bRCS\b
 \bCVS\b
 ,v$
-\B\.svn\b
+\B\.git
 
 # Avoid Makemaker generated and utility files.
 \bMakefile$
@@ -29,3 +29,5 @@
 
 # Avoid spelling test.
 pod-spelling.t$
+^MYMETA\.yml$
+^MYMETA\.json$
