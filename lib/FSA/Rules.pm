@@ -1446,7 +1446,7 @@ L<bug-FSA-Rules.cpan.org|mailto:bug-FSA-Rules.cpan.org>.
 
 =over
 
-=item David Wheeler <david@kineticode.com>
+=item David E. Wheeler <david@justatheory.com>
 
 =item Curtis "Ovid" Poe <eop_divo_sitruc@yahoo.com> (reverse the name to email him)
 
@@ -1454,7 +1454,7 @@ L<bug-FSA-Rules.cpan.org|mailto:bug-FSA-Rules.cpan.org>.
 
 =head1 Copyright and License
 
-Copyright (c) 2004-2008 David Wheeler. Some Rights Reserved.
+Copyright (c) 2004-2011 David E. Wheeler. Some Rights Reserved.
 
 This module is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
