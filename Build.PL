@@ -16,7 +16,7 @@ my $build = Module::Build->new(
         'Text::Wrap'     => 0,
         'Storable'       => '2.05',
         'B::Deparse'     => '0.61',
-        'Test::Pod'      => '1.20',
+        'Test::Pod'      => '1.41',
       },
 
 );
