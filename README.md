@@ -1,4 +1,4 @@
-FSA/Rules version 0.29
+FSA/Rules version 0.30
 ======================
 
 FSA::Rules implements a simple state machine pattern, allowing you to quickly
