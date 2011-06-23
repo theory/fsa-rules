@@ -1440,7 +1440,7 @@ contribute!
 
 Please file bug reports via L<GitHub
 Issues|http://github.com/theory/fsa-rules/issues/> or by sending mail to
-L<bug-FSA-Rules.cpan.org|mailto:bug-FSA-Rules.cpan.org>.
+L<bug-FSA-Rules@rt.cpan.org|mailto:bug-FSA-Rules@rt.cpan.org>.
 
 =head1 Authors
 
