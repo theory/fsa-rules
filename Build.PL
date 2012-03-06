@@ -16,7 +16,7 @@ my $build = Module::Build->new(
         'Storable'       => '2.05',
         'B::Deparse'     => '0.61',
         'Test::Pod'      => '1.41',
-      },
+    },
     meta_merge => {
         resources => {
             homepage   => 'http://search.cpan.org/dist/FSA-Rules/',

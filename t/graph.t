@@ -54,10 +54,12 @@ digraph test {
 END_TEXT
 my $graph_text = $fsa->graph->as_canon;
 $graph_text    =~ s/\t/        /g;
+$graph_text    =~ s/\015?\012/\n/g;
 is $graph_text, $expected,
   '... and it should return a text version of the graph.';
 $graph_text = $fsa->graph->as_canon;
 $graph_text    =~ s/\t/        /g;
+$graph_text    =~ s/\015?\012/\n/g;
 is $graph_text, $expected,
   '... and I should be able to call it multiple times and get the same results.';
 
@@ -116,6 +118,7 @@ $graph = $fsa->graph(
 
 $graph_text = $graph->as_canon;
 $graph_text    =~ s/\t/        /g;
+$graph_text    =~ s/\015?\012/\n/g;
 is $graph_text, $expected,
   '... and it should properly handle wrapping parameters';
 
@@ -133,5 +136,6 @@ $graph = $fsa->graph(
 
 $graph_text = $graph->as_canon;
 $graph_text    =~ s/\t/        /g;
+$graph_text    =~ s/\015?\012/\n/g;
 is $graph_text, $expected,
     '... And it should handle deprecated wrapping parameters';
