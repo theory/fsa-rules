@@ -1,5 +1,7 @@
 Revision history for Perl extension FSA::Rules.
 
+0.31
+
 0.30  2012-03-06T05:03:37Z
       - Fixed broken rt.cpan.org email address.
       - Fixed failed tests in `t/graph.t` on Windows.
