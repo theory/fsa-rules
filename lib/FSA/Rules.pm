@@ -134,6 +134,11 @@ A value to which to set the C<strict> attribute.
 The name of the class to use for state objects. Defaults to "FSA::State". Use
 this parameter if you want to use a subclass of FSA::State.
 
+=item state_params
+
+A hash reference of parameters to pass as a list to the C<state_class>
+constructor.
+
 =back
 
 All other parameters define the state table, where each key is the name of a
@@ -303,8 +308,8 @@ sub new {
         self   => $self,
     };
 
-    $params->{state_class} ||= 'FSA::State';
-    $params->{state_args} ||= {};
+    $params->{state_class}  ||= 'FSA::State';
+    $params->{state_params} ||= {};
     while (@_) {
         my $state = shift;
         my $def   = shift;
@@ -321,7 +326,7 @@ sub new {
         }
 
         # Create the state object and cache the state data.
-        my $obj = $params->{state_class}->new(%{$params->{state_args}});
+        my $obj = $params->{state_class}->new(%{$params->{state_params}});
         $def->{name} = $state;
         $def->{machine} = $self;
         $fsa->{table}{$state} = $obj;

@@ -639,7 +639,7 @@ isa_ok $foo, 'FSA::State';
 
 ok $fsa = $CLASS->new( { start => 1,
                          state_class => 'FSA::Stately',
-                         state_args  => { myarg => 'bar'} },
+                         state_params  => { myarg => 'bar'} },
                        foo => { rules => [ bar => 1 ]},
                        bar => {},
                    ),
