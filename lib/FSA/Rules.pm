@@ -2,7 +2,7 @@ package FSA::Rules;
 
 use strict;
 use 5.006_002;
-$FSA::Rules::VERSION = '0.31';
+$FSA::Rules::VERSION = '0.32';
 
 =head1 Name
 
