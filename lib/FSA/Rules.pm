@@ -304,6 +304,7 @@ sub new {
     };
 
     $params->{state_class} ||= 'FSA::State';
+    $params->{state_args} ||= {};
     while (@_) {
         my $state = shift;
         my $def   = shift;
@@ -320,7 +321,7 @@ sub new {
         }
 
         # Create the state object and cache the state data.
-        my $obj = $params->{state_class}->new;
+        my $obj = $params->{state_class}->new(%{$params->{state_args}});
         $def->{name} = $state;
         $def->{machine} = $self;
         $fsa->{table}{$state} = $obj;

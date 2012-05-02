@@ -2,7 +2,7 @@
 
 use strict;
 #use Test::More 'no_plan';
-use Test::More tests => 316;
+use Test::More tests => 327;
 
 my $CLASS;
 BEGIN {
@@ -636,6 +636,25 @@ ok $fsa = $CLASS->new( { state_class => 'FSA::Stately'}, foo => {} ),
 ok $foo = $fsa->states('foo'), 'Get "foo" state';
 isa_ok $foo, 'FSA::Stately';
 isa_ok $foo, 'FSA::State';
+
+ok $fsa = $CLASS->new( { start => 1,
+                         state_class => 'FSA::Stately',
+                         state_args  => { myarg => 'bar'} },
+                       foo => { rules => [ bar => 1 ]},
+                       bar => {},
+                   ),
+  "Construct with state_class";
+
+ok $foo = $fsa->states('foo'), 'Get "foo" state';
+isa_ok $foo, 'FSA::Stately';
+isa_ok $foo, 'FSA::State';
+isa_ok $fsa->curr_state, 'FSA::Stately';
+is $fsa->curr_state->name, 'foo';
+is $fsa->curr_state->{myarg}, 'bar';
+ok $fsa->try_switch;
+isa_ok $fsa->curr_state, 'FSA::Stately';
+is $fsa->curr_state->name, 'bar';
+is $fsa->curr_state->{myarg}, 'bar';
 
 # test that messages get set even if a state dies
 $fsa = $CLASS->new(
