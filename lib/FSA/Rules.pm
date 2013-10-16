@@ -2,6 +2,7 @@ package FSA::Rules;
 
 use strict;
 use 5.006_002;
+use Scalar::Util 1.01 ();
 $FSA::Rules::VERSION = '0.32';
 
 =head1 Name
@@ -308,6 +309,9 @@ sub new {
         self   => $self,
     };
 
+    # Weaken the circular reference.
+    Scalar::Util::weaken $fsa->{self};
+
     $params->{state_class}  ||= 'FSA::State';
     $params->{state_params} ||= {};
     while (@_) {
@@ -332,6 +336,9 @@ sub new {
         $fsa->{table}{$state} = $obj;
         push @{$fsa->{ord}}, $obj;
         $states{$obj} = $def;
+
+        # Weaken the circular reference.
+        Scalar::Util::weaken $def->{machine};
     }
 
     # Setup rules. We process the table a second time to catch invalid

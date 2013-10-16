@@ -1,6 +1,9 @@
 Revision history for Perl extension FSA::Rules.
 
 0.32
+      - Fixed a memory leak that prevented any FSA::Rules object from being
+        destroyed until program exit. Thanks to Alceu Rodrigues de Freitas
+        Junior for the report!
 
 0.31  2012-05-02T16:04:15Z
       - Added `state_params` parameter to `new()`. The specified hash
