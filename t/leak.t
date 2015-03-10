@@ -48,6 +48,12 @@ ok !$leaks, 'There should be no leaks with circular rules' or
     diag sprintf '%d of %d original references were not freed',
     $leaks->unfreed_count, $leaks->probe_count;
 
+# FSA::State sneakily uses the memory address of the object to find its
+# attributes in the file-coped %states lexical. So we take advantage of that
+# by trapping the addresses as strings in the call to leaks() above, and then
+# passing them to name() as if they were objects. If there is no leak, the
+# objects should not exist. If there is a leak, they will still exist and
+# return their names.
 while (my ($state, $address) = each %states) {
     ok !FSA::State::name($address), qq{State "$state" should no longer exist};
 }
