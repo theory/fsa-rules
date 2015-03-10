@@ -381,6 +381,9 @@ sub new {
                     exec    => $exec,
                     message => $message,
                 };
+
+                # Weaken the circular reference.
+                Scalar::Util::weaken $rules[-1]->{state};
             }
             $def->{rules} = \@rules;
         } else {
