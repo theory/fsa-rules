@@ -11,6 +11,8 @@
 \bpm_to_blib$
 \bblibdirs$
 ^MANIFEST\.SKIP$
+^MYMETA\.yml$
+^MYMETA\.json$
 
 # Avoid Module::Build generated and utility files.
 \bBuild$
@@ -29,5 +31,3 @@
 
 # Avoid spelling test.
 pod-spelling.t$
-^MYMETA\.yml$
-^MYMETA\.json$
