@@ -142,8 +142,10 @@ is_deeply [$bar->message], [
   '... or all messages of of the state if called in list context';
 
 can_ok $fsa, 'stacktrace';
-my $stacktrace = $fsa->stacktrace;
-is $stacktrace, <<"END_TRACE", '... and it should return a human readable trace';
+SKIP: {
+    skip 'Data::Dumper segfaults on Perl 5.6' if $] < 5.008;
+    my $stacktrace = $fsa->stacktrace;
+    is $stacktrace, <<"END_TRACE", '... and it should return a human readable trace';
 State: foo
 {
   message => undef,
@@ -169,6 +171,7 @@ State: foo
 }
 
 END_TRACE
+}
 
 can_ok $fsa, 'raw_stacktrace';
 my $expected = [
