@@ -1,5 +1,7 @@
 Revision history for Perl extension FSA::Rules.
 
+0.35
+
 0.34  2015-03-14T00:45:52Z
       - Added version to FSA::State, thus fixing CPAN indexing, which failed
         for v0.33.
