@@ -4,8 +4,9 @@ Revision history for Perl extension FSA::Rules.
       - Added test to prevent future memory leaks.
       - Fixed another memory leak caused by circular rule references. Thanks
         to Alceu Rodrigues de Freitas Junior for the report!
-      - Skipped test that causes Data::Dumper to segfault on Perl 5.6. Only
-        happens when the machine has recursive rules.
+      - Eliminated segfault in `stacktrace` on Perl 5.6 when the machine has
+        recursive rules. Done by requiring the pure Perl implementation of
+        Data::Dumper on versions of Perl less than 5.8.
 
 0.32  2013-10-16T18:38:59Z
       - Fixed a memory leak that prevented any FSA::Rules object from being

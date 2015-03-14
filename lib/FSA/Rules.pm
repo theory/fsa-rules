@@ -962,6 +962,7 @@ sub stacktrace {
     local $Data::Dumper::Indent    = 1;
     local $Data::Dumper::Quotekeys = 0;
     local $Data::Dumper::Sortkeys  = 1;
+    local  $Data::Dumper::Useperl  = $] < 5.008;
     foreach my $state (@$states) {
         $stacktrace .= "State: $state->[0]\n";
         $stacktrace .= Data::Dumper::Dumper($state->[1]);
