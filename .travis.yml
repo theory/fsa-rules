@@ -27,6 +27,7 @@ install:
 
 before_script:
   - coverage-setup
+  - prove -lv t/leak.t
 
 after_success:
   - coverage-report
