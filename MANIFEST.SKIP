@@ -3,6 +3,7 @@
 \bCVS\b
 ,v$
 \B\.git
+\B\.travis\.yml
 
 # Avoid Makemaker generated and utility files.
 \bMakefile$
@@ -29,5 +30,5 @@
 # Avoid build files.
 ^FSA-Rules
 
-# Avoid spelling test.
-pod-spelling.t$
+# Avoid Pod tests.
+t/pod[^.]*\.t

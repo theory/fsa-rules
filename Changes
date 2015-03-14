@@ -7,6 +7,7 @@ Revision history for Perl extension FSA::Rules.
       - Eliminated segfault in `stacktrace` on Perl 5.6 when the machine has
         recursive rules. Done by requiring the pure Perl implementation of
         Data::Dumper on versions of Perl less than 5.8.
+      - Removed all Pod tests from the distribution.
 
 0.32  2013-10-16T18:38:59Z
       - Fixed a memory leak that prevented any FSA::Rules object from being
