@@ -8,7 +8,7 @@ my $build = Module::Build->new(
         perl         => 5.006_002,
         Scalar::Util => '1.01',
     },
-    configure_requires => { 'Module::Build' => '0.2701'  },
+    configure_requires => { 'Module::Build' => '0.42'  },
     build_requires     => {
         'Module::Build' => '0.2701',
         'Test::More'    => '0.17',
