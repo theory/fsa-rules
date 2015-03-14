@@ -1,6 +1,6 @@
 Revision history for Perl extension FSA::Rules.
 
-0.33
+0.33  2015-03-14T00:30:57Z
       - Added test to prevent future memory leaks.
       - Fixed another memory leak caused by circular rule references. Thanks
         to Alceu Rodrigues de Freitas Junior for the report!
