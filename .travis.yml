@@ -11,10 +11,9 @@ perl:
   - "dev"
   - "blead"
 
+env: COVERAGE=1
+
 matrix:
-  include:
-    - perl: "5.20"
-      env: COVERAGE=1
   allow_failures:
     - perl: "blead"
 
