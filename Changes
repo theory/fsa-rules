@@ -1,5 +1,9 @@
 Revision history for Perl extension FSA::Rules.
 
+0.34  2015-03-14T00:45:52Z
+      - Added version to FSA::State, thus fixing CPAN indexing, which failed
+        for v0.33.
+
 0.33  2015-03-14T00:42:20Z
       - Added test to prevent future memory leaks.
       - Fixed another memory leak caused by circular rule references. Thanks
