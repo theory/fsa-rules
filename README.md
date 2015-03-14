@@ -1,6 +1,10 @@
 FSA/Rules version 0.35
 ======================
 
+[![CPAN version](https://badge.fury.io/pl/FSA-Rules.svg)](http://badge.fury.io/pl/App-Sqitch)
+[![Build Status](https://travis-ci.org/theory/fsa-rules.svg)](https://travis-ci.org/theory/sqitch)
+[![Coverage Status](https://coveralls.io/repos/theory/fsa-rules/badge.svg)](https://coveralls.io/r/theory/sqitch)
+
 FSA::Rules implements a simple state machine pattern, allowing you to quickly
 build rules-based state machines in Perl. As a simple implementation of a
 powerful concept, it differs slightly from an ideal DFA model in that it does
