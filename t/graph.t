@@ -41,23 +41,23 @@ if ($ENV{DEVTEST}) {
 
 my $expected = <<'END_TEXT';
 digraph test {
-        graph [ratio=fill];
-        node [label="\N"];
-        ping [label=ping];
-        end [label=end];
-        pong [label=pong];
+        ratio="fill";
+        ping [label="ping"];
+        end [label="end"];
+        pong [label="pong"];
         ping -> end;
         ping -> pong;
         pong -> end;
         pong -> ping;
 }
 END_TEXT
-my $graph_text = $fsa->graph->as_canon;
+
+my $graph_text = $fsa->graph->as_debug;
 $graph_text    =~ s/\t/        /g;
 $graph_text    =~ s/\015?\012/\n/g;
 is $graph_text, $expected,
   '... and it should return a text version of the graph.';
-$graph_text = $fsa->graph->as_canon;
+$graph_text = $fsa->graph->as_debug;
 $graph_text    =~ s/\t/        /g;
 $graph_text    =~ s/\015?\012/\n/g;
 is $graph_text, $expected,
@@ -92,15 +92,16 @@ can_ok $fsa, 'graph';
 isa_ok $fsa->graph, 'GraphViz';
 $expected = <<'END_TEXT';
 digraph test {
-        graph [ratio=fill, bgcolor=magenta];
-        node [label="\N", shape=circle];
+        ratio="fill";
+        bgcolor="magenta";
+        node [shape="circle"];
         ping [label="ping\n\nCan we ping\nit, can we,\nhuh?"];
-        end [label=end];
-        pong [label=pong];
-        ping -> end [decorate=1, label="Enough\nIterations\n(ping)"];
-        ping -> pong [decorate=1];
-        pong -> end [decorate=1, label="Enough\nIterations"];
-        pong -> ping [decorate=1];
+        end [label="end"];
+        pong [label="pong"];
+        ping -> end [decorate="1", label="Enough\nIterations\n(ping)"];
+        ping -> pong [decorate="1"];
+        pong -> end [decorate="1", label="Enough\nIterations"];
+        pong -> ping [decorate="1"];
 }
 END_TEXT
 
@@ -116,7 +117,7 @@ $graph = $fsa->graph(
     node    => { shape => 'circle' },
 );
 
-$graph_text = $graph->as_canon;
+$graph_text = $graph->as_debug;
 $graph_text    =~ s/\t/        /g;
 $graph_text    =~ s/\015?\012/\n/g;
 is $graph_text, $expected,
@@ -134,7 +135,7 @@ $graph = $fsa->graph(
     node    => { shape => 'circle' },
 );
 
-$graph_text = $graph->as_canon;
+$graph_text = $graph->as_debug;
 $graph_text    =~ s/\t/        /g;
 $graph_text    =~ s/\015?\012/\n/g;
 is $graph_text, $expected,
