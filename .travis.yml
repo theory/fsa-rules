@@ -28,7 +28,7 @@ before_install:
 install:
   - cpan-install --deps
   - cpan-install --coverage
-  - cpanm --verbose --no-interactive --no-man-pages --notest Test::Weaken
+  - perl -i -pe "s/'GraphViz'/'Test::Weaken' => 0, 'GraphViz'/" Build.PL
 
 before_script:
   - coverage-setup
