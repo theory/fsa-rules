@@ -79,7 +79,7 @@ So how does it work? Because the rules are defined as code references, you
 must use Storable 2.05 or later and set its C<$Deparse> and C<$Eval> variables
 to true values:
 
-  use Storable qw(freeze thaw);
+  use Storable 2.05 qw(freeze thaw);
 
   local $Storable::Deparse = 1;
   local $Storable::Eval    = 1;

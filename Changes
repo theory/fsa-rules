@@ -3,6 +3,8 @@ Revision history for Perl extension FSA::Rules.
 0.35
       - Fixed failing GraphViz tests by comparing debug output rather than
         canonical.
+      - Fixed failing test that failed to require a sufficiently new version
+        of Storable.
 
 0.34  2015-03-14T00:45:52Z
       - Added version to FSA::State, thus fixing CPAN indexing, which failed
