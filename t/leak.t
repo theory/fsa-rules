@@ -4,7 +4,7 @@ use strict;
 use Test::More;
 
 eval 'use Test::Weaken qw(leaks)';
-plan skip_all => 'Test Weaken required to test for memory leaks' if $@;
+plan skip_all => 'Test::Weaken required to test for memory leaks' if $@;
 
 plan tests => 6;
 
