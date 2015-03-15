@@ -11,6 +11,7 @@ perl:
   - "dev"
   - "blead"
 
+sudo: false
 env: COVERAGE=1
 
 matrix:
