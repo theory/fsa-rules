@@ -65,9 +65,8 @@ state or the state machine itself.
 
 =head2 Serialization
 
-As of version 0.24, FSA::Rules supports serialization by L<Storable|Storable>
-2.05 and later. In other words, FSA::Rules can function as a persistent state
-machine.
+As of version 0.24, FSA::Rules supports serialization by L<Storable> 2.05 and
+later. In other words, FSA::Rules can function as a persistent state machine.
 
 However, FSA::Rules stores data outside of FSA::Rules objects, in private data
 structures inside the FSA::Rules module itself. Therefore, unless you want to
@@ -978,10 +977,10 @@ sub stacktrace {
   my $graph_viz = $fsa->graph(@graph_viz_args);
   $graph_viz = $fsa->graph(\%params, @graph_viz_args);
 
-Constructs and returns a L<GraphViz|GraphViz> object useful for generating
-graphical representations of the complete rules engine. The parameters to
-C<graph()> are all those supported by the GraphViz constructor; consult the
-L<GraphViz|GraphViz> documentation for details.
+Constructs and returns a L<GraphViz> object useful for generating graphical
+representations of the complete rules engine. The parameters to C<graph()> are
+all those supported by the GraphViz constructor; consult the L<GraphViz>
+documentation for details.
 
 Each node in the graph represents a single state. The label for each node in
 the graph will be either the state label or if there is no label, the state
@@ -1452,13 +1451,13 @@ __END__
 
 =head1 Support
 
-This module is stored in an open L<GitHub
-repository|http://github.com/theory/fsa-rules/>. Feel free to fork and
-contribute!
+This module is stored in an open
+L<GitHub repository|http://github.com/theory/fsa-rules/>. Feel free to fork
+and contribute!
 
-Please file bug reports via L<GitHub
-Issues|http://github.com/theory/fsa-rules/issues/> or by sending mail to
-L<bug-FSA-Rules@rt.cpan.org|mailto:bug-FSA-Rules@rt.cpan.org>.
+Please file bug reports via
+L<GitHub Issues|http://github.com/theory/fsa-rules/issues/> or by sending mail
+to L<bug-FSA-Rules@rt.cpan.org|mailto:bug-FSA-Rules@rt.cpan.org>.
 
 =head1 Authors
 
@@ -1472,7 +1471,7 @@ L<bug-FSA-Rules@rt.cpan.org|mailto:bug-FSA-Rules@rt.cpan.org>.
 
 =head1 Copyright and License
 
-Copyright (c) 2004-2012 David E. Wheeler. Some Rights Reserved.
+Copyright (c) 2004-2015 David E. Wheeler. Some Rights Reserved.
 
 This module is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.

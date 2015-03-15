@@ -62,7 +62,7 @@ It does, however recommend the following modules:
 Copyright and License
 ---------------------
 
-Copyright (c) 2002-2012, David E. Wheeler. Some Rights Reserved.
+Copyright (c) 2002-2015, David E. Wheeler. Some Rights Reserved.
 
 This module is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
