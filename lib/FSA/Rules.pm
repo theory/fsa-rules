@@ -3,7 +3,7 @@ package FSA::Rules;
 use strict;
 use 5.006_002;
 use Scalar::Util 1.01 ();
-$FSA::Rules::VERSION = '0.35';
+$FSA::Rules::VERSION = '0.36';
 
 =head1 Name
 
@@ -1168,7 +1168,7 @@ sub STORABLE_thaw {
 ##############################################################################
 
 package FSA::State;
-$FSA::State::VERSION = '0.35';
+$FSA::State::VERSION = '0.36';
 
 =head1 FSA::State Interface
 

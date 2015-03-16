@@ -1,5 +1,7 @@
 Revision history for Perl extension FSA::Rules.
 
+0.36
+
 0.35  2015-03-16T16:04:12Z
       - Fixed failing GraphViz tests by comparing debug output rather than
         canonical.

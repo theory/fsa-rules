@@ -1,4 +1,4 @@
-FSA/Rules version 0.35
+FSA/Rules version 0.36
 ======================
 
 [![CPAN version](https://badge.fury.io/pl/FSA-Rules.svg)](http://badge.fury.io/pl/FSA-Rules)
