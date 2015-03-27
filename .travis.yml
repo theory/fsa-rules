@@ -17,6 +17,8 @@ env: COVERAGE=1
 addons:
   apt_packages:
   - graphviz
+  - aspell
+  - aspell-en
 
 matrix:
   allow_failures:
