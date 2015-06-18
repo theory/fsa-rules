@@ -1,6 +1,8 @@
 Revision history for Perl extension FSA::Rules.
 
 0.36
+      - Added `get_note()` and `set_note()` as more efficient ways of getting
+        and setting individual notes.
 
 0.35  2015-03-16T16:04:12Z
       - Fixed failing GraphViz tests by comparing debug output rather than

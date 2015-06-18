@@ -826,6 +826,19 @@ entire hash of key-value pairs.
 
 Returns the FSA::Rules object when setting a note value.
 
+=head3 get_note
+
+  my $val = $fsa->get_note($key);
+
+A more efficient way of fetching a single note value.
+
+=head3 set_note
+
+  $fsa->get_note($key, $val);
+
+A more efficient way of setting a single note value. Returns the FSA::Rules
+object.
+
 =cut
 
 sub notes {
@@ -837,6 +850,9 @@ sub notes {
     $fsa->{notes}{$key} = shift;
     return $self;
 }
+
+sub get_note { $machines{ $_[0] }->{notes}{ $_[1] } }
+sub set_note { $machines{ $_[0] }->{notes}{ $_[1] } = $_[2]; $_[0] }
 
 ##############################################################################
 

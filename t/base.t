@@ -532,10 +532,10 @@ is $fsa->notes( key => 'val' ), $fsa,
   "... And should get the machine back when setting a note";
 is $fsa->notes('key'), 'val',
   "... And passing in the key should return the corresponding value";
-is $fsa->notes( my => 'machine' ), $fsa,
-  "We should get the machine back when setting another note";
-is $fsa->notes('my'), 'machine',
-  "... And passing in the key should return the new value";
+is $fsa->set_note( my => 'machine' ), $fsa,
+  "We should get the machine back from set_note";
+is $fsa->get_note('my'), 'machine',
+  "... And get_note should return the new value";
 is_deeply $fsa->notes, { test => 'foo', key => 'val', my => 'machine' },
   "... And passing in no arguments should return the complete notes hashref";
 $fsa->{should_not_exist_after_reset} = 1;
